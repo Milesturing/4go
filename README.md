@@ -1,2 +1,2 @@
 # 4guo
-four-country-war game (4guo, in Chinese), a practice using Racket to do real-world programming
+four-country-war game (4guo, in Chinese), a little practice using Racket to do real programming
