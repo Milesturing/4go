@@ -109,45 +109,15 @@
   )))
 
 
-(define occupied-list null) ; empty list
+; ====================================================
 
-(define (occupy country row col chess)
-  (let ([xy (coordinatex row col 0 0 country)] 
-         [xyp (coordinatex row col 1 1 country)])     
-   (send dc set-brush "red" 'solid)
-   (my-draw-rectangle dc xy xyp)
-   (set! occupied-list (cons (list country row col chess) occupied-list))   
-))
-
-(define (occupied? country row col)
-  (eval (cons 'or ; tricky, needs to be modified
-     (map (lambda (item) 
-               (and (eq? (first item) country)
-                      (eq? (second item) row)
-                      (eq? (third item) col)))
-      occupied-list))
-  ))
-
-(define (delete-occupied country row col)
-  (set! occupied-list 
-       (remove (list country row col) occupied-list
-             (lambda (list1 list2)
-               (and (eq? (first list1) (first list2))
-                      (eq? (second list1) (second list2))
-                      (eq? (third list1) (third list2))
-                      ))))
-   (send dc set-brush "white" 'solid)
-   (draw-empty-chess row col country)
-)
-  
 (define (chessboard)  
   (draw-board)
   (draw-middle)
   
 ;  (occupy down 0 0 39)
 ;  (occupy up     1 0 40)
-  
-)
+  )
 
 ; ====================================================
 
