@@ -17,17 +17,6 @@
 
 ; ===================================================================
 
-(define (is-camp row col) ; is camp or not
-  (and (or (= row col) (= (+ row col) 4))
-          (>= row 1) (<= row 3)
- ))
-
-(define (is-base row col) ; is base or not
-  (and (= row 5) (or (= col 1) (= col 3)))
-)
-  
-; ===================================================================
-
 (define (draw-empty-chess i j country)
      (let* ([xy (coordinatex i j 0 0 country)] 
               [xyp (coordinatex i j 1 1 country)]

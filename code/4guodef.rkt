@@ -4,7 +4,7 @@
 
 (provide up left down right blue-pen red-pen white-pen
         blue-dashed-pen my-draw-rectangle coordinatex
-        lsize frame-size)
+        lsize frame-size is-camp is-base)
  
 ; =================================
 ;
@@ -48,6 +48,7 @@
      (send dc draw-rounded-rectangle xx yy aa bb)
   ))                  
 
+; ===================================================================
 
 ; middle point for each country
 (define (middle-point country) (posv +  (posv * country (+ (/ arena-height 2) (/ arena-width 2) margin2)) arena-height (/ arena-width 2) margin2 margin0))
@@ -69,3 +70,14 @@
                                                   (posv * (new-y country) (+ (* i (+ lsize lspace)) (* y lsize) ))))
 
 ; ====================================================
+
+(define (is-camp row col) ; is camp or not
+  (and (or (= row col) (= (+ row col) 4))
+          (>= row 1) (<= row 3)
+ ))
+
+(define (is-base row col) ; is base or not
+  (and (= row 5) (or (= col 1) (= col 3)))
+)
+
+; ===================================================================
