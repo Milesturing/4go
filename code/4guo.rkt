@@ -6,15 +6,28 @@
 
 ; ===================================================================
 
-(define (draw-board dc)
-  (for* ([row (range 6)]
-           [col (range 5)]
-           [country (list up left down right)])
-   (draw-empty-chess dc row col country)))
+(define dc null)
+
+(define (draw-board)
+  (for* ([row (range 6)] ; 6 rows
+           [col (range 5)] ; 5 columns
+           [country (list up left down right)]) ; we have 4 countries
+   (draw-empty-chess row col country)))
 
 ; ===================================================================
 
-(define (draw-empty-chess dc i j country)
+(define (is-camp row col) ; is camp or not
+  (and (or (= row col) (= (+ row col) 4))
+          (>= row 1) (<= row 3)
+ ))
+
+(define (is-base row col) ; is base or not
+  (and (= row 5) (or (= col 1) (= col 3)))
+)
+  
+; ===================================================================
+
+(define (draw-empty-chess i j country)
      (let* ([xy (coordinatex i j 0 0 country)] 
               [xyp (coordinatex i j 1 1 country)]
               [xy2 (coordinatex i j 1 1/2 country)]
@@ -26,7 +39,7 @@
               [radius2 (abs (/ (- (second xyp) (second xy)) 2))])
        (begin
         (send dc set-pen blue-pen)
-         (if (or (and (or (= i 1) (= i 3)) (or (= j 1) (= j 3))) (and (= i 2) (= j 2))) ; draw circle
+         (if (is-camp i j) ; draw circle
             (begin
                (send dc set-pen white-pen)
                (send dc set-brush "white" 'solid)
@@ -46,7 +59,7 @@
              )
             ; else
             (begin
-             (if (and (= i 5) (or (= j 1) (= j 3))) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
+             (if (is-base i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
              (my-draw-rectangle dc xy xyp) ; draw rectangle
              (send dc set-pen blue-pen)
              )
@@ -59,7 +72,7 @@
 
 ; ===================================================================
 
-(define (draw-middle dc)
+(define (draw-middle)
   (send dc set-pen blue-pen)
   (for ([j '(0 2 4)])
    (let ([xyup (coordinatex 0 j 1/2 0 up)]
@@ -97,7 +110,7 @@
 
 (define occupied-list null) ; empty list
 
-(define (occupy country row col chess dc)
+(define (occupy country row col chess)
   (let ([xy (coordinatex row col 0 0 country)] 
          [xyp (coordinatex row col 1 1 country)])     
    (send dc set-brush "red" 'solid)
@@ -114,7 +127,7 @@
       occupied-list))
   ))
 
-(define (delete-occupied country row col dc)
+(define (delete-occupied country row col)
   (set! occupied-list 
        (remove (list country row col) occupied-list
              (lambda (list1 list2)
@@ -123,15 +136,15 @@
                       (eq? (third list1) (third list2))
                       ))))
    (send dc set-brush "white" 'solid)
-   (draw-empty-chess dc row col country)
+   (draw-empty-chess row col country)
 )
   
-(define (chessboard dc)  
-  (draw-board dc)
-  (draw-middle dc)
+(define (chessboard)  
+  (draw-board)
+  (draw-middle)
   
-  (occupy down 0 0 39 dc)
-  (occupy up     1 0 40 dc)
+  (occupy down 0 0 39)
+  (occupy up     1 0 40)
   
 )
 
@@ -175,15 +188,15 @@
       (new (class canvas%
              (super-new [parent my-frame])
              [define/override (on-paint)
-               (define my-dc (send my-canvas get-dc))
-               (send my-dc clear)
-               (chessboard my-dc)
+               (set! dc (send my-canvas get-dc))
+               (send dc clear)
+               (chessboard)
                ]
               [define/override (on-event event)
                 (define button-pressed (send event button-down? 'any))
                 ;
                 (define which-chess null)
-                (define my-dc (send my-canvas get-dc))
+                (set! dc (send my-canvas get-dc))
                 (if button-pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
@@ -194,14 +207,14 @@
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
-                                (send my-dc set-brush "green" 'solid)
-                                (my-draw-rectangle my-dc (fourth which-chess) (fifth which-chess)))
+                                (send dc set-brush "green" 'solid)
+                                (my-draw-rectangle dc (fourth which-chess) (fifth which-chess)))
                             null) 
                         ; chess-picked-up
                         (if (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
                           (begin
-                            (delete-occupied (first chess-from) (second chess-from) (third chess-from) my-dc) 
-                            (occupy (first which-chess) (second which-chess) (third which-chess) 39 my-dc)
+                            (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
+                            (occupy (first which-chess) (second which-chess) (third which-chess) 39)
                             (set! chess-picked-up #f)
                             (set! chess-from null)
                             ) null))
