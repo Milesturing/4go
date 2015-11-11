@@ -7,6 +7,22 @@
 (define my-font
       (make-object font% (round (* lsize 57/100)) 'default)) ; here we have size of text!
 
+(define (get-top-left-corner country row col)
+     (cond
+           [(eq? country down) (coordinatex row col 0 0 country)]
+           [(eq? country up)     (coordinatex row col 1 1 country)]
+           [(eq? country left)    (coordinatex row col 0 1 country)] 
+           [(eq? country right)  (coordinatex row col 1 0 country)] )
+)
+
+(define (get-size-xy country x y)
+  (cond
+    [(eq? country down) (list x y)]
+    [(eq? country up)     (list x y)]
+    [(eq? country left)    (list y x)]
+    [(eq? country right)  (list y x)]
+    ))
+
 ; ===================================================================
 (define dc null)
 
@@ -22,18 +38,24 @@
 
 (define (show-chess row col country chess color)
   
-   (let ([xy (coordinatex row col 0 0 country)]
-          [xy2 (coordinatex row col 0.1 0 country)]
-         [xyp (coordinatex row col 1 1 country)])     
-   (send dc set-brush color 'solid)
+   (let ([xy (get-top-left-corner country row col)]
+          [ab (get-size-xy country rsize lsize)]
+          [xy2 (coordinatex row col 0.1 0 country)])
+     
+    (send dc set-brush color 'solid)
      
 ;   (send dc draw-bitmap-section target38 (first xy) (second xy) 0 0 45 30 )
      
-    (my-draw-rectangle dc xy xyp)
+    (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (send dc draw-text chess (first xy2) (second xy2) ) ; show text
-     
+    (if (or (eq? country up) (eq? country down))
+        (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) ) ; show text
+        (begin
+        (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) ) ; show text
+        )
+        ;(send dc draw-text (     
+    )    
 ))
 
 ; ===================================================================

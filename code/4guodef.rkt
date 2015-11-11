@@ -3,8 +3,8 @@
 (require racket/class racket/gui/base)
 
 (provide up left down right blue-pen red-pen white-pen
-        blue-dashed-pen my-draw-rectangle coordinatex
-        lsize frame-size is-camp is-base)
+        blue-dashed-pen coordinatex
+        lsize rsize frame-size is-camp is-base)
  
 ; =================================
 ;
@@ -40,13 +40,6 @@
 (define red-pen (new pen% [color "red"] [width 2]))
 (define white-pen (new pen% [color "white"] [width 2]))
 (define blue-dashed-pen (new pen% [color "blue"] [width 2] [style 'short-dash]))
-(define (my-draw-rectangle dc xy xy2)
-  (let* ([x (first xy)] [y (second xy)] [a (- (first xy2) (first xy))] [b (- (second xy2) (second xy))]
-           [xx x] [yy y] [aa a] [bb b])
-     (if (< a 0) (begin (set! xx (+ x a)) (set! aa (- a))) null)
-     (if (< b 0) (begin (set! yy (+ y b)) (set! bb (- b))) null)        
-     (send dc draw-rounded-rectangle xx yy aa bb)
-  ))                  
 
 ; ===================================================================
 
