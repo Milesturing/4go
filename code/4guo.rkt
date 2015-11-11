@@ -174,7 +174,7 @@
                                 
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
-                            (occupy (first which-chess) (second which-chess) (third which-chess) "军长")
+                            (occupy t-country t-row t-col "军长")
                             (set! chess-picked-up #f)
                             (set! chess-from null)
                             (re-draw)
