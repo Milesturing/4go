@@ -5,7 +5,8 @@
 (provide up left down right blue-pen red-pen white-pen
         blue-dashed-pen my-font 
         get-top-left-corner get-size-xy coordinatex
-        lsize rsize frame-size is-camp is-base left-country right-country)
+        lsize rsize frame-size is-camp is-base 
+        left-country right-country opposite-country)
  
 ; =================================
 ;
@@ -109,5 +110,8 @@
      [(== right) down]
      [(== up) right]
      [(== left) up] ))
+
+(define (opposite-country country)
+    (right-country (right-country country)))
 
 ; ===================================================================

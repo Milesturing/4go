@@ -24,24 +24,11 @@
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (send dc draw-text chess (match country
-                                                   [(== up) (+ (first xy) (* (first ab) iota))]
-                                                   [(== down) (+ (first xy) (* (first ab) iota))]
-                                                   [(== left) (+ (first xy) (first ab))]
-                                                   [(== right) (first xy)]
-                                          )       
-                                          (match country
-                                                   [(== up) (second xy)]
-                                                   [(== down) (second xy)]
-                                                   [(== left) (+ (second xy) (* (second ab) iota))]
-                                                   [(== right) (+ (second xy) (* (second ab) (- 1 iota)))]
-                                          )     
-                                          #f 0  
-             (match country 
-                      [(== up) 0] 
-                      [(== down) 0]
-                      [(== left) (/ pi -2)]
-                      [(== right) (/ pi 2)] )
+    (match country
+      [(== up) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+      [(== down) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+      [(== left)  (send dc draw-text chess  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
+      [(== right) (send dc draw-text chess (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
      ) ; show text
 ))
 
@@ -141,7 +128,7 @@
           (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5)))
   (and (eq? country2 (left-country country))
           (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5)))
-  (and (eq? country2 (right-country (right-country country)))
+  (and (eq? country2 (opposite-country country))
           (even? col) (= (+ col2 col) 4) 
           (or (and (= col 2) (= row 0) (= row2 0)) 
                (and (not (= col 2)) (not (= row 5)) (not (= row2 5))))
