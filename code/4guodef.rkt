@@ -14,9 +14,9 @@
 
 ; constant values
 ; =================================
-(define-values (up left down right) (values '(0 -1) '(-1 0) '(0 1) '(1 0))) ; country
+(define-values (up left down right) (values '(0 -1) '(-1 0) '(0 1) '(1 0) )) ; country
 
-(define lsize 17) 
+(define lsize 20) 
 (define rsize (* lsize 2) )
 (define size (list rsize lsize))
 

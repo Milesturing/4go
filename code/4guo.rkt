@@ -4,25 +4,66 @@
 (require racket/class racket/gui/base)
 (require "4guodef.rkt")
 
+(define my-font
+      (make-object font% (round (* lsize 57/100)) 'default)) ; here we have size of text!
+
 ; ===================================================================
+(define dc null)
 
 (define target (make-bitmap frame-size frame-size))
-(define dc null)
 
 (send target load-file "chessboard.png" 'png)
 
+; (define target38 (make-bitmap 2 2))
+
+; (send target38 load-file "38.png" 'png)
+
 ; ===================================================================
 
+(define (show-chess row col country chess color)
+  
+   (let ([xy (coordinatex row col 0 0 country)]
+          [xy2 (coordinatex row col 0.1 0 country)]
+         [xyp (coordinatex row col 1 1 country)])     
+   (send dc set-brush color 'solid)
+     
+;   (send dc draw-bitmap-section target38 (first xy) (second xy) 0 0 45 30 )
+     
+    (my-draw-rectangle dc xy xyp)
+     
+    (send dc set-font my-font) 
+    (send dc draw-text chess (first xy2) (second xy2) ) ; show text
+     
+))
+
+; ===================================================================
+
+(define (show-all-chess lst)
+  (if (null? lst)
+    null     
+    (let* ([fst (car lst)]
+            [country (first fst)]
+            [row (second fst)]
+            [col (third fst)]
+            [chess (fourth fst)])
+      (show-chess row col country chess "red")
+      (show-all-chess (cdr lst))
+      )))
+
+
+(define (re-draw)
+     (send dc clear)
+     (send dc draw-bitmap target 0 0)
+     (show-all-chess occupied-list)
+)
+
+; ===================================================================
 
 (define occupied-list null) ; empty list
 
 (define (occupy country row col chess)
-  (let ([xy (coordinatex row col 0 0 country)] 
-         [xyp (coordinatex row col 1 1 country)])     
-   (send dc set-brush "red" 'solid)
-   (my-draw-rectangle dc xy xyp)
    (set! occupied-list (cons (list country row col chess) occupied-list))   
-))
+)
 
 (define (occupied? country row col)
   (eval (cons 'or ; tricky, needs to be modified
@@ -41,16 +82,12 @@
                       (eq? (second list1) (second list2))
                       (eq? (third list1) (third list2))
                       ))))
-   (send dc set-brush "white" 'solid)
-  ; (draw-empty-chess row col country)
-   (send dc draw-bitmap target 0 0)
 )
   
 (define (chessboard)  
 
-  
-  (occupy down 0 0 39)
-;  (occupy up     1 0 40)
+  (occupy down 0 0 "军长")
+  (occupy up     1 0 "军长")
   
 )
 
@@ -95,9 +132,11 @@
              (super-new [parent my-frame])
              [define/override (on-paint)
                (set! dc (send my-canvas get-dc))
-               (send dc clear)
-               (send dc draw-bitmap target 0 0)
+               ;(send dc clear)
+               ;(send dc draw-bitmap target 0 0)
                (chessboard)
+               (re-draw)
+
                ]
               [define/override (on-event event)
                 (define button-pressed (send event button-down? 'any))
@@ -115,15 +154,17 @@
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
                                 (send dc set-brush "green" 'solid)
-                                (my-draw-rectangle dc (fourth which-chess) (fifth which-chess)))
+                                (show-chess (second which-chess) (third which-chess) (first which-chess) "军长" "green"))
+                                 
                             null) 
                         ; chess-picked-up
                         (if (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
-                            (occupy (first which-chess) (second which-chess) (third which-chess) 39)
+                            (occupy (first which-chess) (second which-chess) (third which-chess) "军长")
                             (set! chess-picked-up #f)
                             (set! chess-from null)
+                            (re-draw)
                             ) null))
                           null)   
                    ) null
