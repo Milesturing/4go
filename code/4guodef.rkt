@@ -38,24 +38,6 @@
 (define frame-size (+ margin0 margin1 margin2 margin2 arena-height arena-height arena-width))
 
 ; ===================================================================
-
-(define (get-top-left-corner country row col)
-     (cond
-           [(eq? country down) (coordinatex row col 0 0 country)]
-           [(eq? country up)     (coordinatex row col 1 1 country)]
-           [(eq? country left)    (coordinatex row col 0 1 country)] 
-           [(eq? country right)  (coordinatex row col 1 0 country)] )
-)
-
-(define (get-size-xy country x y)
-  (cond
-    [(eq? country down) (list x y)]
-    [(eq? country up)     (list x y)]
-    [(eq? country left)    (list y x)]
-    [(eq? country right)  (list y x)]
-    ))
-
-; ===================================================================
 ; draw the board
 (define blue-pen (new pen% [color "blue"] [width 2]))
 (define red-pen (new pen% [color "red"] [width 2]))
@@ -85,17 +67,24 @@
     (map + (starting-point country) (posv * (new-x country) (+ (* j (+ rsize rspace))  (* x rsize) ))
                                                   (posv * (new-y country) (+ (* i (+ lsize lspace)) (* y lsize) ))))
 
-; ====================================================
+; ===================================================================
 ; utilities
 
-(define (is-camp row col) ; is camp or not
-  (and (or (= row col) (= (+ row col) 4))
-          (>= row 1) (<= row 3)
- ))
-
-(define (is-base row col) ; is base or not
-  (and (= row 5) (or (= col 1) (= col 3)))
+(define (get-top-left-corner country row col)
+     (match country
+           [(== down) (coordinatex row col 0 0 country)]
+           [(== up)     (coordinatex row col 1 1 country)]
+           [(== left)    (coordinatex row col 0 1 country)] 
+           [(== right)  (coordinatex row col 1 0 country)] )
 )
+
+(define (get-size-xy country x y)
+  (match country
+    [(== down) (list x y)]
+    [(== up)     (list x y)]
+    [(== left)    (list y x)]
+    [(== right)  (list y x)]
+    ))
 
 (define (right-country country)
    (match country
@@ -113,5 +102,16 @@
 
 (define (opposite-country country)
     (right-country (right-country country)))
+
+; ===================================================================
+
+(define (is-camp row col) ; is camp or not
+  (and (or (= row col) (= (+ row col) 4))
+          (>= row 1) (<= row 3)
+ ))
+
+(define (is-base row col) ; is base or not
+  (and (= row 5) (or (= col 1) (= col 3)))
+)
 
 ; ===================================================================

@@ -114,6 +114,8 @@
     result
     ))
 
+; ====================================================
+
 (define (can-move country row col country2 row2 col2)        
   (if (eq? country country2)
      (or
@@ -125,13 +127,13 @@
   ; else                 
   (or   
   (and (eq? country2 (right-country country))
-          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5)))
+          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1
   (and (eq? country2 (left-country country))
-          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5)))
+          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2
   (and (eq? country2 (opposite-country country))
           (even? col) (= (+ col2 col) 4) 
           (or (and (= col 2) (= row 0) (= row2 0)) 
-               (and (not (= col 2)) (not (= row 5)) (not (= row2 5))))
+               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3
   )
 )))
   
@@ -177,8 +179,7 @@
                             null) 
                         ; chess-picked-up
                         (if (and (not (occupied? t-country t-row t-col))
-                                    (can-move (first chess-from) (second chess-from) (third chess-from)
-                                                      t-country t-row t-col))
+                                    (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col))
                                 
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
