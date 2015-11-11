@@ -115,7 +115,7 @@
      (or
      (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
      (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2
-     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1) ; case 3
+     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3
      (and (or (is-camp row col) (is-camp row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4
   ) 
   ; else                 

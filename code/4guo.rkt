@@ -153,21 +153,24 @@
                 (if button-pressed ; the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
+                       
                      (if (not (null? which-chess))
-                     (if (not chess-picked-up)
+                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)])
+                         (if (not chess-picked-up)
                         ; chess-not-picked-up
-                        (if (occupied? (first which-chess) (second which-chess) (third which-chess))
+                        (if (and (occupied? t-country t-row t-col)
+                                    (not (is-base t-row t-col)))
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
                                 (send dc set-brush "green" 'solid)
-                                (show-chess (second which-chess) (third which-chess) (first which-chess) "军长" "green"))
+                                (show-chess t-row t-col t-country  "军长" "green"))
                                  
                             null) 
                         ; chess-picked-up
-                        (if (and (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
+                        (if (and (not (occupied? t-country t-row t-col))
                                     (legal-move (first chess-from) (second chess-from) (third chess-from)
-                                                      (first which-chess) (second which-chess) (third which-chess)))
+                                                      t-country t-row t-col))
                                 
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
@@ -175,7 +178,7 @@
                             (set! chess-picked-up #f)
                             (set! chess-from null)
                             (re-draw)
-                            ) null))
+                            ) null)))
                           null)   
                    ) null
                 )]
