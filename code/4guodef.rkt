@@ -3,7 +3,8 @@
 (require racket/class racket/gui/base)
 
 (provide up left down right blue-pen red-pen white-pen
-        blue-dashed-pen coordinatex
+        blue-dashed-pen my-font 
+        get-top-left-corner get-size-xy coordinatex
         lsize rsize frame-size is-camp is-base)
  
 ; =================================
@@ -16,7 +17,7 @@
 ; =================================
 (define-values (up left down right) (values '(0 -1) '(-1 0) '(0 1) '(1 0) )) ; country
 
-(define lsize 20) 
+(define lsize 20) ; mutable data 
 (define rsize (* lsize 2) )
 (define size (list rsize lsize))
 
@@ -34,12 +35,33 @@
 (define margin2 (truncate (* lsize 9/10))) ; separation between each country
 
 (define frame-size (+ margin0 margin1 margin2 margin2 arena-height arena-height arena-width))
-; =================================
+
+; ===================================================================
+
+(define (get-top-left-corner country row col)
+     (cond
+           [(eq? country down) (coordinatex row col 0 0 country)]
+           [(eq? country up)     (coordinatex row col 1 1 country)]
+           [(eq? country left)    (coordinatex row col 0 1 country)] 
+           [(eq? country right)  (coordinatex row col 1 0 country)] )
+)
+
+(define (get-size-xy country x y)
+  (cond
+    [(eq? country down) (list x y)]
+    [(eq? country up)     (list x y)]
+    [(eq? country left)    (list y x)]
+    [(eq? country right)  (list y x)]
+    ))
+
+; ===================================================================
 ; draw the board
 (define blue-pen (new pen% [color "blue"] [width 2]))
 (define red-pen (new pen% [color "red"] [width 2]))
 (define white-pen (new pen% [color "white"] [width 2]))
 (define blue-dashed-pen (new pen% [color "blue"] [width 2] [style 'short-dash]))
+(define my-font
+      (make-object font% (round (* lsize 57/100)) 'default)) ; here we have size of text!
 
 ; ===================================================================
 

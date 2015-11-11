@@ -18,22 +18,22 @@
 ; ===================================================================
 
 (define (draw-empty-chess i j country)
-     (let* ([xy (coordinatex i j 0 0 country)] 
-              [xyp (coordinatex i j 1 1 country)]
+     (let* ([xy (get-top-left-corner country i j)]
+              [ab (get-size-xy country rsize lsize)]
               [xy2 (coordinatex i j 1 1/2 country)]
               [xyn (coordinatex i (+ j 1) 0 1/2 country)] 
               [xy3 (coordinatex i j 1/2 1 country)] 
               [xyd (coordinatex (+ i 1) j 1/2 0 country)] 
               [xy0 (coordinatex i j 1/2 1/2 country)]
-              [radius1 (abs (/ (- (first xyp) (first xy)) 2))]
-              [radius2 (abs (/ (- (second xyp) (second xy)) 2))])
+              [radius1 (/ (first ab) 2)]
+              [radius2 (/ (second ab) 2)])
        (begin
         (send dc set-pen blue-pen)
          (if (is-camp i j) ; draw circle
             (begin
                (send dc set-pen white-pen)
                (send dc set-brush "white" 'solid)
-               (my-draw-rectangle dc xy xyp) ; erase rectangle
+               (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) ) ; erase rectangle
                (send dc set-pen blue-pen)
                (for* ([ii '(-1 1)]
                         [jj '(-1 1)]) ; draw diagonal line
@@ -50,7 +50,7 @@
             ; else
             (begin
              (if (is-base i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
-             (my-draw-rectangle dc xy xyp) ; draw rectangle
+             (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) ) ; draw rectangle
              (send dc set-pen blue-pen)
              )
          )

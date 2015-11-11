@@ -4,25 +4,6 @@
 (require racket/class racket/gui/base)
 (require "4guodef.rkt")
 
-(define my-font
-      (make-object font% (round (* lsize 57/100)) 'default)) ; here we have size of text!
-
-(define (get-top-left-corner country row col)
-     (cond
-           [(eq? country down) (coordinatex row col 0 0 country)]
-           [(eq? country up)     (coordinatex row col 1 1 country)]
-           [(eq? country left)    (coordinatex row col 0 1 country)] 
-           [(eq? country right)  (coordinatex row col 1 0 country)] )
-)
-
-(define (get-size-xy country x y)
-  (cond
-    [(eq? country down) (list x y)]
-    [(eq? country up)     (list x y)]
-    [(eq? country left)    (list y x)]
-    [(eq? country right)  (list y x)]
-    ))
-
 ; ===================================================================
 (define dc null)
 
@@ -37,10 +18,7 @@
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country rsize lsize)])
      
-    (send dc set-brush color 'solid)
-     
-;   (send dc draw-bitmap-section target38 (first xy) (second xy) 0 0 45 30 )
-     
+    (send dc set-brush color 'solid)     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
