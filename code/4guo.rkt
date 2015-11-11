@@ -24,21 +24,24 @@
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (send dc draw-text chess (cond [(eq? country up) (+ (first xy) (* (first ab) iota))]
-                                                   [(eq? country down) (+ (first xy) (* (first ab) iota))]
-                                                   [(eq? country left) (+ (first xy) (first ab))]
-                                                   [(eq? country right) (first xy)]
+    (send dc draw-text chess (match country
+                                                   [(== up) (+ (first xy) (* (first ab) iota))]
+                                                   [(== down) (+ (first xy) (* (first ab) iota))]
+                                                   [(== left) (+ (first xy) (first ab))]
+                                                   [(== right) (first xy)]
                                           )       
-                                          (cond [(eq? country up) (second xy)]
-                                                   [(eq? country down) (second xy)]
-                                                   [(eq? country left) (+ (second xy) (* (second ab) iota))]
-                                                   [(eq? country right) (+ (second xy) (* (second ab) (- 1 iota)))]
+                                          (match country
+                                                   [(== up) (second xy)]
+                                                   [(== down) (second xy)]
+                                                   [(== left) (+ (second xy) (* (second ab) iota))]
+                                                   [(== right) (+ (second xy) (* (second ab) (- 1 iota)))]
                                           )     
                                           #f 0  
-             (cond [(eq? country up) 0] 
-                      [(eq? country down) 0]
-                      [(eq? country left) (/ pi -2)]
-                      [(eq? country right) (/ pi 2)] )
+             (match country 
+                      [(== up) 0] 
+                      [(== down) 0]
+                      [(== left) (/ pi -2)]
+                      [(== right) (/ pi 2)] )
      ) ; show text
 ))
 
@@ -147,7 +150,7 @@
                 ;
                 (define which-chess null)
                 (set! dc (send my-canvas get-dc))
-                (if button-pressed
+                (if button-pressed ; the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
                      (if (not (null? which-chess))
@@ -162,7 +165,9 @@
                                  
                             null) 
                         ; chess-picked-up
-                        (if (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
+                        (if (and (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
+                                    (legal-move (first chess-from) (second chess-from) (third chess-from)
+                                                      (first which-chess) (second which-chess) (third which-chess)))
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
                             (occupy (first which-chess) (second which-chess) (third which-chess) "军长")
