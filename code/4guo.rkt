@@ -30,17 +30,12 @@
 
 (send target load-file "chessboard.png" 'png)
 
-; (define target38 (make-bitmap 2 2))
-
-; (send target38 load-file "38.png" 'png)
-
 ; ===================================================================
 
 (define (show-chess row col country chess color)
   
    (let ([xy (get-top-left-corner country row col)]
-          [ab (get-size-xy country rsize lsize)]
-          [xy2 (coordinatex row col 0.1 0 country)])
+          [ab (get-size-xy country rsize lsize)])
      
     (send dc set-brush color 'solid)
      
@@ -49,13 +44,12 @@
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (if (or (eq? country up) (eq? country down))
-        (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) ) ; show text
-        (begin
-        (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) ) ; show text
-        )
-        ;(send dc draw-text (     
-    )    
+    (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) #f 0  
+             (cond [(eq? country up) 0] 
+                      [(eq? country down) 0]
+                      [(eq? country left) (/ pi -2)]
+                      [(eq? country right) (/ pi 2)] )
+     ) ; show text
 ))
 
 ; ===================================================================
