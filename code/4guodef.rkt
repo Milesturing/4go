@@ -3,9 +3,9 @@
 (require racket/class racket/gui/base)
 
 (provide up left down right blue-pen red-pen white-pen
-        blue-dashed-pen my-font left-country right-country
+        blue-dashed-pen my-font 
         get-top-left-corner get-size-xy coordinatex
-        lsize rsize frame-size is-camp is-base legal-move)
+        lsize rsize frame-size is-camp is-base left-country right-country)
  
 ; =================================
 ;
@@ -109,27 +109,5 @@
      [(== right) down]
      [(== up) right]
      [(== left) up] ))
-  
-(define (legal-move country row col country2 row2 col2)        
-  (if (eq? country country2)
-     (or
-     (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
-     (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2
-     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3
-     (and (or (is-camp row col) (is-camp row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4
-  ) 
-  ; else                 
-  (or   
-  (and (eq? country2 (right-country country))
-          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5)))
-  (and (eq? country2 (left-country country))
-          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5)))
-  (and (eq? country2 (right-country (right-country country)))
-          (even? col) (= (+ col2 col) 4) 
-          (or (and (= col 2) (= row 0) (= row2 0)) 
-               (and (not (= col 2)) (not (= row 5)) (not (= row2 5))))
-  )
-)))
-
 
 ; ===================================================================
