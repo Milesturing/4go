@@ -168,6 +168,7 @@
                         (if (and (not (occupied? (first which-chess) (second which-chess) (third which-chess)))
                                     (legal-move (first chess-from) (second chess-from) (third chess-from)
                                                       (first which-chess) (second which-chess) (third which-chess)))
+                                
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
                             (occupy (first which-chess) (second which-chess) (third which-chess) "军长")
