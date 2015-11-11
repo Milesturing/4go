@@ -1,5 +1,6 @@
 #lang racket
 ; four-country battle game
+; Be sure to run drawboard.rkt first to generate chessboard.png
 
 (require racket/class racket/gui/base)
 (require "4guodef.rkt")
@@ -16,13 +17,24 @@
 (define (show-chess row col country chess color)
   
    (let ([xy (get-top-left-corner country row col)]
-          [ab (get-size-xy country rsize lsize)])
+          [ab (get-size-xy country rsize lsize)]
+          [iota 0.1]) ; iota is little offset
      
     (send dc set-brush color 'solid)     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (send dc draw-text chess (+ (first xy) (* (first ab) 0.1) ) (second xy) #f 0  
+    (send dc draw-text chess (cond [(eq? country up) (+ (first xy) (* (first ab) iota))]
+                                                   [(eq? country down) (+ (first xy) (* (first ab) iota))]
+                                                   [(eq? country left) (+ (first xy) (first ab))]
+                                                   [(eq? country right) (first xy)]
+                                          )       
+                                          (cond [(eq? country up) (second xy)]
+                                                   [(eq? country down) (second xy)]
+                                                   [(eq? country left) (+ (second xy) (* (second ab) iota))]
+                                                   [(eq? country right) (+ (second xy) (* (second ab) (- 1 iota)))]
+                                          )     
+                                          #f 0  
              (cond [(eq? country up) 0] 
                       [(eq? country down) 0]
                       [(eq? country left) (/ pi -2)]
@@ -126,9 +138,7 @@
              (super-new [parent my-frame])
              [define/override (on-paint)
                (set! dc (send my-canvas get-dc))
-               ;(send dc clear)
-               ;(send dc draw-bitmap target 0 0)
-               (chessboard)
+               (chessboard) ; draw the empty board
                (re-draw)
 
                ]
