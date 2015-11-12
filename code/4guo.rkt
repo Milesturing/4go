@@ -9,7 +9,6 @@
 (define dc null)
 
 (define target (make-bitmap frame-size frame-size))
-
 (send target load-file "chessboard.png" 'png)
 
 ; ===================================================================
@@ -151,21 +150,23 @@
              (super-new [parent my-frame])
              [define/override (on-paint)
                (set! dc (send my-canvas get-dc))
-               (chessboard) ; draw the empty board
-               (re-draw)
-
-               ]
+               (chessboard) 
+               (re-draw) ; draw the board according to current status
+              ]
+             
               [define/override (on-event event)
                 (define button-pressed (send event button-down? 'any))
                 ;
                 (define which-chess null)
                 (set! dc (send my-canvas get-dc))
-                (if button-pressed ; the button is pressed
+
+                (if button-pressed ; if the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
                        
                      (if (not (null? which-chess))
-                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)])
+                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)]
+                                [t-chess "军长"]) ; problematic
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
@@ -174,8 +175,8 @@
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
                                 (send dc set-brush "green" 'solid)
-                                (show-chess t-row t-col t-country  "军长" "green"))
-                                 
+                                (show-chess t-row t-col t-country t-chess "green")
+                              )                                 
                             null) 
                         ; chess-picked-up
                         (if (and (not (occupied? t-country t-row t-col))
@@ -183,15 +184,14 @@
                                 
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
-                            (occupy t-country t-row t-col "军长")
+                            (occupy t-country t-row t-col t-chess)
                             (set! chess-picked-up #f)
                             (set! chess-from null)
                             (re-draw)
                             ) null)))
                           null)   
                    ) null
-                )]
-                
+                )]                
              ))
   )
 

@@ -2,11 +2,11 @@
 
 (require racket/class racket/gui/base)
 
-(provide up left down right blue-pen red-pen white-pen
-        blue-dashed-pen my-font 
-        get-top-left-corner get-size-xy coordinatex
-        lsize rsize frame-size is-camp is-base 
-        left-country right-country opposite-country)
+(provide up left down right lsize rsize frame-size
+        blue-pen red-pen white-pen blue-dashed-pen 
+        my-font get-top-left-corner get-size-xy 
+        left-country right-country opposite-country
+        coordinatex is-camp is-base )
  
 ; =================================
 ;
@@ -102,8 +102,6 @@
 
 (define (opposite-country country)
     (right-country (right-country country)))
-
-; ===================================================================
 
 (define (is-camp row col) ; is camp or not
   (and (or (= row col) (= (+ row col) 4))
