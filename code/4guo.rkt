@@ -120,12 +120,12 @@
 (define (can-move country row col country2 row2 col2) 
  (if (eq? country middle) 
    (or
-        (and (eq? country2 left) (= col2 (+ row row)) (< row2 5) (if (= row 1) (= row2 0) #t))
-        (and (eq? country2 right) (= col2 (- 4 row row)) (< row2 5) (if (= row 1) (= row2 0) #t))
+        (and (eq? country2 left) (= col2 (+ row row)) (if (= row 1) (= row2 0) (< row2 5)))
+        (and (eq? country2 right) (= col2 (- 4 row row)) (if (= row 1) (= row2 0)  (< row2 5)))
         (and (eq? country2 middle) (= row2 row) (not (= col2 col)))
 
-        (and (eq? country2 down) (= col2 (+ col col)) (< row2 5) (if (= col 1) (= row2 0) #t))
-        (and (eq? country2 up) (= col2 (- 4 col col)) (< row2 5) (if (= col 1) (= row2 0) #t))
+        (and (eq? country2 down) (= col2 (+ col col)) (if (= col 1) (= row2 0) (< row2 5)))
+        (and (eq? country2 up) (= col2 (- 4 col col)) (if (= col 1) (= row2 0) (< row2 5)))
         (and (eq? country2 middle) (= col2 col) (not (= row2 row)))
     )    
   (if (eq? country2 middle)
