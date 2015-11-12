@@ -57,8 +57,6 @@
          (if (< j 4) (send dc draw-line (first xy2) (second xy2) (first xyn) (second xyn)) null)
          (if (< i 5) (send dc draw-line (first xy3) (second xy3) (first xyd) (second xyd)) null)
          )))
-  
-  ;  (send dc draw-text "军长" 130 130)
 
 ; ===================================================================
 
@@ -103,9 +101,7 @@
 (define (chessboard)  
   (draw-board)
   (draw-middle)
-  
-;  (occupy down 0 0 39)
-;  (occupy up     1 0 40)
+
   )
 
 ; ====================================================

@@ -79,7 +79,7 @@
                       ))))
 )
   
-(define (chessboard)  
+(define (init-board)  
 
   (occupy down 0 0 "军长")
   (occupy up     1 0 "军长")
@@ -150,7 +150,7 @@
              (super-new [parent my-frame])
              [define/override (on-paint)
                (set! dc (send my-canvas get-dc))
-               (chessboard) 
+               (init-board) 
                (re-draw) ; draw the board according to current status
               ]
              
