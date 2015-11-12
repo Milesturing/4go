@@ -64,9 +64,10 @@
   
 (define (coordinatex row col x y country) ; x and y are offset -- calculating the coordinates
     (if (and (eq? country middle)  (< row (row-num country)) (< col (col-num country))) ; conditions
-    (list (first (coordinatex 0 (+ col col) x 0 down)) (+ (second (coordinatex 0 (+ row row) y 0 left)) (* 1/4 rsize)) ) ; coordinates in the middle
+       
+       (list (first (coordinatex 0 (+ col col) x 0 down)) (+ (second (coordinatex 0 (+ row row) y 0 left)) (* 1/4 rsize)) ) ; coordinates in the middle
     ; else
-    (map + (starting-point country) (posv * (new-x country) (+ (* col (+ rsize rspace))  (* x rsize) ))
+       (map + (starting-point country) (posv * (new-x country) (+ (* col (+ rsize rspace))  (* x rsize) ))
                                                   (posv * (new-y country) (+ (* row (+ lsize lspace)) (* y lsize) )))
 
 ))

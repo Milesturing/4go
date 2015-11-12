@@ -23,8 +23,8 @@
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
-    (match country
-      [(== up) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+    (match country 
+      [(== up) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]     
       [(== down) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
       [(== left)  (send dc draw-text chess  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
       [(== right) (send dc draw-text chess (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
@@ -119,9 +119,17 @@
 
 (define (can-move country row col country2 row2 col2) 
  (if (eq? country middle) 
-   #t
-   (if (eq? country2 middle)
-   (can-move country2 row2 col2 country row col)
+   (or
+        (and (eq? country2 left) (= col2 (+ row row)) (< row2 5) (if (= row 1) (= row2 0) #t))
+        (and (eq? country2 right) (= col2 (- 4 row row)) (< row2 5) (if (= row 1) (= row2 0) #t))
+        (and (eq? country2 middle) (= row2 row) (not (= col2 col)))
+
+        (and (eq? country2 down) (= col2 (+ col col)) (< row2 5) (if (= col 1) (= row2 0) #t))
+        (and (eq? country2 up) (= col2 (- 4 col col)) (< row2 5) (if (= col 1) (= row2 0) #t))
+        (and (eq? country2 middle) (= col2 col) (not (= row2 row)))
+    )    
+  (if (eq? country2 middle)
+    (can-move country2 row2 col2 country row col)
   (if (eq? country country2)
      (or
      (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
@@ -140,8 +148,7 @@
           (or (and (= col 2) (= row 0) (= row2 0)) 
                (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3
   )))
-  ))
-)
+)))
   
 ; ====================================================
 ; draw the animation
