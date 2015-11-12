@@ -2,10 +2,10 @@
 
 (require racket/class racket/gui/base)
 
-(provide up left down right lsize rsize frame-size
+(provide up left down right middle lsize rsize frame-size
         blue-pen red-pen white-pen blue-dashed-pen 
         my-font get-top-left-corner get-size-xy 
-        left-country right-country opposite-country
+        left-country right-country row-num col-num
         coordinatex is-camp is-base )
  
 ; =================================
@@ -16,7 +16,7 @@
 
 ; constant values
 ; =================================
-(define-values (up left down right) (values '(0 -1) '(-1 0) '(0 1) '(1 0) )) ; country
+(define-values (up left down right middle) (values '(0 -1) '(-1 0) '(0 1) '(1 0) '(0 0) )) ; country
 
 (define lsize 20) ; mutable data 
 (define rsize (* lsize 2) )
@@ -55,18 +55,22 @@
 (define (new-x country) (list (second country) (- (first country))))
 (define (new-y country) country)  
 ;
+(define (row-num country) (if (eq? country middle) 3 6)) ; how many rows in total
+(define (col-num country) (if (eq? country middle) 3 5))  ; how many cols in total
 
 ; starting point for each country  
 (define (starting-point country)
     (map - (middle-point country) (posv * (new-x country) (first half-arena)) (posv * (new-y country) (second half-arena))))
   
-(define (coordinate i j country) ; i from 0 to 5, j from 0 to 4
-    (map + (starting-point country) (posv * (new-x country) j (+ rsize rspace)) (posv * (new-y country) i (+ lsize lspace)) ))
+(define (coordinatex row col x y country) ; x and y are offset -- calculating the coordinates
+    (if (and (eq? country middle)  (< row (row-num country)) (< col (col-num country))) ; conditions
+    (list (first (coordinatex 0 (+ col col) x 0 down)) (+ (second (coordinatex 0 (+ row row) y 0 left)) (* 1/4 rsize)) ) ; coordinates in the middle
+    ; else
+    (map + (starting-point country) (posv * (new-x country) (+ (* col (+ rsize rspace))  (* x rsize) ))
+                                                  (posv * (new-y country) (+ (* row (+ lsize lspace)) (* y lsize) )))
 
-(define (coordinatex i j x y country) ; x and y are offset -- calculating the coordinates
-    (map + (starting-point country) (posv * (new-x country) (+ (* j (+ rsize rspace))  (* x rsize) ))
-                                                  (posv * (new-y country) (+ (* i (+ lsize lspace)) (* y lsize) ))))
-
+))
+  
 ; ===================================================================
 ; utilities
 
@@ -75,8 +79,9 @@
            [(== down) (coordinatex row col 0 0 country)]
            [(== up)     (coordinatex row col 1 1 country)]
            [(== left)    (coordinatex row col 0 1 country)] 
-           [(== right)  (coordinatex row col 1 0 country)] )
-)
+           [(== right)  (coordinatex row col 1 0 country)]       
+           [(== middle)  (coordinatex row col 0 0 country)]
+))
 
 (define (get-size-xy country x y)
   (match country
@@ -84,6 +89,7 @@
     [(== up)     (list x y)]
     [(== left)    (list y x)]
     [(== right)  (list y x)]
+    [(== middle) (list x y)]
     ))
 
 (define (right-country country)
@@ -91,17 +97,16 @@
      [(== down) right]
      [(== right) up]
      [(== up) left]
-     [(== left) down]))
+     [(== left) down]
+     ))
 
 (define (left-country country)
    (match country
      [(== down) left]
      [(== right) down]
      [(== up) right]
-     [(== left) up] ))
-
-(define (opposite-country country)
-    (right-country (right-country country)))
+     [(== left) up] 
+     ))
 
 (define (is-camp row col) ; is camp or not
   (and (or (= row col) (= (+ row col) 4))

@@ -28,6 +28,7 @@
       [(== down) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
       [(== left)  (send dc draw-text chess  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
       [(== right) (send dc draw-text chess (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
+      [(== middle) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
      ) ; show text
 ))
 
@@ -100,9 +101,10 @@
 (define (search-xy x y) ;
   (let ([result null]
          [quit #f] )
-     (for* ([row (range 6)]
-              [col (range 5)]
-              [country (list up left down right)])
+     (for* ([country (list up left down right middle)]
+              [row (range (row-num country))]
+              [col (range (col-num country))])
+
        #:break quit
      (let ([xy (coordinatex row col 0 0 country)]
             [xyp (coordinatex row col 1 1 country)])
@@ -115,7 +117,11 @@
 
 ; ====================================================
 
-(define (can-move country row col country2 row2 col2)        
+(define (can-move country row col country2 row2 col2) 
+ (if (eq? country middle) 
+   #t
+   (if (eq? country2 middle)
+   (can-move country2 row2 col2 country row col)
   (if (eq? country country2)
      (or
      (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
@@ -129,12 +135,13 @@
           (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1
   (and (eq? country2 (left-country country))
           (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2
-  (and (eq? country2 (opposite-country country))
+  (and (eq? country2 (right-country (right-country country)))
           (even? col) (= (+ col2 col) 4) 
           (or (and (= col 2) (= row 0) (= row2 0)) 
                (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3
-  )
-)))
+  )))
+  ))
+)
   
 ; ====================================================
 ; draw the animation
@@ -180,8 +187,8 @@
                             null) 
                         ; chess-picked-up
                         (if (and (not (occupied? t-country t-row t-col))
-                                    (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col))
-                                
+                                    (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col)
+                           )     
                           (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
                             (occupy t-country t-row t-col t-chess)
