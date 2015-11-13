@@ -81,7 +81,9 @@
 )
   
 (define (init-board)  
-
+  
+  (set! occupied-list null) ; 
+  
   (occupy down 0 0 "军长")
   (occupy up     1 0 "军长")
   
@@ -161,7 +163,6 @@
              (super-new [parent my-frame])
              [define/override (on-paint)
                (set! dc (send my-canvas get-dc))
-               (init-board) 
                (re-draw) ; draw the board according to current status
               ]
              
@@ -174,7 +175,7 @@
                 (if button-pressed ; if the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
-                       
+                                                              
                      (if (not (null? which-chess))
                          (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)]
                                 [t-chess "军长"]) ; problematic
@@ -193,7 +194,7 @@
                         (if (and (not (occupied? t-country t-row t-col))
                                     (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col)
                            )     
-                          (begin
+                          (begin         
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
                             (occupy t-country t-row t-col t-chess)
                             (set! chess-picked-up #f)
@@ -206,5 +207,6 @@
              ))
   )
 
+(init-board) ; initialize it!
 (send my-frame show #t) ; show it!
 
