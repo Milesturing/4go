@@ -87,11 +87,11 @@
   (send dc draw-line (first upq) (second upq) (first leftp) (second leftp))
   (send dc set-pen blue-pen) 
    )
-  ; draw circle  
+  ; draw squares
    (for* ([i '(0 2 4)] [j '(0 2 4)])
    (let ([xyup (coordinatex 0 i 1/2 0 up)]
           [xyleft (coordinatex 0 j 1/2 0 left)]
-          [radius (* lsize 0.9)])
+          [radius (* lsize 0.8)]) ; size of square
      (send dc draw-rounded-rectangle (- (first xyup) radius) (- (second xyleft) radius) (* 2 radius) (* 2 radius))   
   )))
 
