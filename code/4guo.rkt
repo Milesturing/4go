@@ -16,7 +16,7 @@
 (define (show-chess row col country chess color)
   
    (let ([xy (get-top-left-corner country row col)]
-          [ab (get-size-xy country rsize lsize)]
+          [ab (get-size-xy country)]
           [iota 0.1]) ; iota is little offset
      
     (send dc set-brush color 'solid)     
@@ -89,12 +89,10 @@
 
 ; ====================================================
 
-(define (with-in x y xy xyp) ; detect if point (x, y) lies within the rectangle defined by xy and xyp
+(define (with-in x y xy ab) ; detect if point (x, y) lies within the rectangle defined by top left xy and size ab
   (let* ([x0 (first xy)] [y0 (second xy)]
-           [xp (first xyp)] [yp (second xyp)]
-           [delta-x (- x x0)] [delta-y (- y y0)]
-           [delta-xp (- xp x0)] [delta-yp (- yp y0)]
-           [ratio-x (/ delta-x delta-xp)] [ratio-y (/ delta-y delta-yp)])
+           [a (first ab)] [b (second ab)]
+           [ratio-x (/ (- x x0) a)] [ratio-y (/ (- y y0) b)])
     (and (>= ratio-x 0) (<= ratio-x 1)
            (>= ratio-y 0) (<= ratio-y 1))))
   
@@ -104,12 +102,11 @@
      (for* ([country (list up left down right middle)]
               [row (range (row-num country))]
               [col (range (col-num country))])
-
        #:break quit
-     (let ([xy (coordinatex row col 0 0 country)]
-            [xyp (coordinatex row col 1 1 country)])
-       (if (with-in x y  xy xyp)
-          (begin (set! result (list country row col xy xyp)) (set! quit #t))          
+     (let ([xy (get-top-left-corner country row col)]
+            [ab (get-size-xy country)])
+       (if (with-in x y  xy ab)
+          (begin (set! result (list country row col)) (set! quit #t))          
           null
           )))
     result
@@ -140,13 +137,13 @@
   ; else                 
   (or   
   (and (eq? country2 (right-country country))
-          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1
+          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1'
   (and (eq? country2 (left-country country))
-          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2
+          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2'
   (and (eq? country2 (right-country (right-country country)))
           (even? col) (= (+ col2 col) 4) 
           (or (and (= col 2) (= row 0) (= row2 0)) 
-               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3
+               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3'
   )))
 )))
   

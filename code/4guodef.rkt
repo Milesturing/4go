@@ -37,6 +37,9 @@
 
 (define frame-size (+ margin0 margin1 margin2 margin2 arena-height arena-height arena-width))
 
+(define (row-num country) (if (eq? country middle) 3 6)) ; how many rows in total
+(define (col-num country) (if (eq? country middle) 3 5))  ; how many cols in total
+
 ; ===================================================================
 ; draw the board
 (define blue-pen (new pen% [color "blue"] [width 2]))
@@ -54,9 +57,6 @@
 ; new axis for each country 
 (define (new-x country) (list (second country) (- (first country))))
 (define (new-y country) country)  
-;
-(define (row-num country) (if (eq? country middle) 3 6)) ; how many rows in total
-(define (col-num country) (if (eq? country middle) 3 5))  ; how many cols in total
 
 ; starting point for each country  
 (define (starting-point country)
@@ -84,13 +84,13 @@
            [(== middle)  (coordinatex row col 0 0 country)]
 ))
 
-(define (get-size-xy country x y)
+(define (get-size-xy country)
   (match country
-    [(== down) (list x y)]
-    [(== up)     (list x y)]
-    [(== left)    (list y x)]
-    [(== right)  (list y x)]
-    [(== middle) (list x y)]
+    [(== down) (list rsize lsize)]
+    [(== up)     (list rsize lsize)]
+    [(== left)    (list lsize rsize)]
+    [(== right)  (list lsize rsize)]
+    [(== middle) (list rsize lsize)]
     ))
 
 (define (right-country country)
