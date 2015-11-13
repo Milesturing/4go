@@ -19,7 +19,7 @@
 
 (define (draw-empty-chess i j country)
      (let* ([xy (get-top-left-corner country i j)]
-              [ab (get-size-xy country rsize lsize)]
+              [ab (get-size-xy country)]
               [xy2 (coordinatex i j 1 1/2 country)]
               [xyn (coordinatex i (+ j 1) 0 1/2 country)] 
               [xy3 (coordinatex i j 1/2 1 country)] 
