@@ -13,7 +13,7 @@
 
 ; ===================================================================
 
-(define (show-chess row col country chess color)
+(define (show-chess country row col chess color)
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)]
@@ -42,7 +42,7 @@
             [row (second fst)]
             [col (third fst)]
             [chess (fourth fst)])
-      (show-chess row col country chess "red")
+      (show-chess country row col chess "red")
       (show-all-chess (cdr lst))
       )))
 
@@ -57,35 +57,33 @@
 
 (define occupied-list null) ; empty list
 
+(define (sub-list? list1 list2) ; the length of list2 must be greater than that of list1
+   (if (null? list1) #t
+        (if (eq? (car list1) (car list2)) (sub-list? (cdr list1) (cdr list2)) #f)
+  ))
+                        
 (define (occupy country row col chess)
    (set! occupied-list (cons (list country row col chess) occupied-list))   
 )
 
-(define (occupied? country row col)
-  (eval (cons 'or ; tricky, needs to be modified
-     (map (lambda (item) 
-               (and (eq? (first item) country)
-                      (eq? (second item) row)
-                      (eq? (third item) col)))
-      occupied-list))
-  ))
-
 (define (delete-occupied country row col)
   (set! occupied-list 
-       (remove (list country row col) occupied-list
-             (lambda (list1 list2)
-               (and (eq? (first list1) (first list2))
-                      (eq? (second list1) (second list2))
-                      (eq? (third list1) (third list2))
-                      ))))
-)
+       (remove (list country row col) occupied-list sub-list?)))
+
+(define (find-chess country row col) ; find the chess based on the coordinates
+    (let ([item (filter (lambda (lst) (sub-list? (list country row col) lst)) occupied-list)])
+        (if (null? item) null (fourth (car item)))))
+
+(define (occupied? country row col) 
+      (not (null? (find-chess country row col))))
+;
   
 (define (init-board)  
   
   (set! occupied-list null) ; 
   
   (occupy down 0 0 "军长")
-  (occupy up     1 0 "军长")
+  (occupy up     1 0 "师长")
   
 )
 
@@ -97,7 +95,7 @@
            [ratio-x (/ (- x x0) a)] [ratio-y (/ (- y y0) b)])
     (and (>= ratio-x 0) (<= ratio-x 1)
            (>= ratio-y 0) (<= ratio-y 1))))
-  
+
 (define (search-xy x y) ;
   (let ([result null]
          [quit #f] )
@@ -108,7 +106,7 @@
      (let ([xy (get-top-left-corner country row col)]
             [ab (get-size-xy country)])
        (if (with-in x y  xy ab)
-          (begin (set! result (list country row col)) (set! quit #t))          
+          (begin (set! result (list country row col (find-chess country row col))) (set! quit #t))          
           null
           )))
     result
@@ -175,10 +173,10 @@
                 (if button-pressed ; if the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
-                                                              
+  
                      (if (not (null? which-chess))
-                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)]
-                                [t-chess "军长"]) ; problematic
+                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)] [t-chess (fourth which-chess)]) 
+                         ;                                     
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
@@ -187,16 +185,16 @@
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
                                 (send dc set-brush "green" 'solid)
-                                (show-chess t-row t-col t-country t-chess "green")
+                                (show-chess  t-country t-row t-col t-chess "green")
                               )                                 
                             null) 
                         ; chess-picked-up
-                        (if (and (not (occupied? t-country t-row t-col))
+                            (if (and (not (occupied? t-country t-row t-col))
                                     (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col)
-                           )     
-                          (begin         
+                                )     
+                          (begin
                             (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
-                            (occupy t-country t-row t-col t-chess)
+                            (occupy t-country t-row t-col (fourth chess-from))
                             (set! chess-picked-up #f)
                             (set! chess-from null)
                             (re-draw)
