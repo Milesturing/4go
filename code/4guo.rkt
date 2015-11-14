@@ -135,7 +135,7 @@
      (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
      (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2
      (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3
-     (and (or (is-camp row col) (is-camp row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4
+     (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4
   ) 
   ; else                 
   (or   
@@ -183,7 +183,7 @@
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
-                                    (not (or (is-base t-row t-col) (= t-chess 100)) ))
+                                    (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
@@ -192,7 +192,7 @@
                               )                                 
                             null) 
                         ; chess-picked-up
-                          (let*  ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)]) 
+                          (let ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)]) 
                           (if  (can-move c-country c-row c-col t-country t-row t-col)
                             
                             (if (not (occupied? t-country t-row t-col))                            
@@ -204,7 +204,7 @@
                                (re-draw)
                              )
                             ; else occupied
-                            (if (is-camp t-row t-col) null
+                            (if (is-camp t-country t-row t-col) null
                             (let ([beat (beat-it c-chess t-chess)])
                                (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
                                (if (> beat 0) (occupy t-country t-row t-col c-chess) null)

@@ -29,7 +29,7 @@
               [radius2 (/ (second ab) 2)])
        (begin
         (send dc set-pen blue-pen)
-         (if (is-camp i j) ; draw circle
+         (if (is-camp country i j) ; draw circle
             (begin
                (send dc set-pen white-pen)
                (send dc set-brush "white" 'solid)
@@ -49,7 +49,7 @@
              )
             ; else
             (begin
-             (if (is-base i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
+             (if (is-base country i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
              (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) ) ; draw rectangle
              (send dc set-pen blue-pen)
              )

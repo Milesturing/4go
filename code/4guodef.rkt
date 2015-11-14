@@ -109,19 +109,19 @@
      [(== left) up] 
      ))
 
-(define (is-camp row col) ; is camp or not
-  (and (or (= row col) (= (+ row col) 4))
-          (>= row 1) (<= row 3)
+(define (is-camp country row col) ; is camp or not
+  (and (not (eq? country middle))
+          (or (= row col) (= (+ row col) 4)) (>= row 1) (<= row 3)
  ))
 
-(define (is-base row col) ; is base or not
-  (and (= row 5) (or (= col 1) (= col 3)))
+(define (is-base country row col) ; is base or not
+  (and (not (eq? country middle)) (= row 5) (or (= col 1) (= col 3)))
 )
 
 ; ===================================================================
 
 (define (chess-code num)
-  (match num [40 "司令"] [39 "军长"] [38 "师长"] [37 "旅长"] [36 "团长"] [35 "营长"] [34 "连长"] [33 "排长"] [32 "工兵"] [0 "炸弹"] [100 "地雷"] [10 "军旗"])
+  (match num [40 "司令"] [39 "军长"] [38 "师长"] [37 "旅长"] [36 "团长"] [35 "营长"] [34 "连长"] [33 "排长"] [11 "工兵"] [0 "炸弹"] [100 "地雷"] [10 "军旗"])
 )
 
 (define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
