@@ -17,18 +17,18 @@
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)]
-          [iota 0.1]) ; iota is little offset
+          [iota 0.1] [the-code (chess-code chess)]) ; iota is little offset
      
     (send dc set-brush color 'solid)     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font) 
     (match country 
-      [(== up) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]     
-      [(== down) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
-      [(== left)  (send dc draw-text chess  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
-      [(== right) (send dc draw-text chess (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
-      [(== middle) (send dc draw-text chess (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+      [(== up) (send dc draw-text the-code  (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]     
+      [(== down) (send dc draw-text the-code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+      [(== left)  (send dc draw-text the-code  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
+      [(== right) (send dc draw-text the-code (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
+      [(== middle) (send dc draw-text the-code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
      ) ; show text
 ))
 
@@ -82,8 +82,11 @@
   
   (set! occupied-list null) ; 
   
-  (occupy down 0 0 "军长")
-  (occupy up     1 0 "师长")
+  (occupy down 1 0 39)
+  (occupy up     1 0 38)
+  (occupy left    0 0 40)
+  (occupy right  4 2 0)
+  (occupy left    5 4 100)
   
 )
 
@@ -180,7 +183,7 @@
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
-                                    (not (is-base t-row t-col)))
+                                    (not (or (is-base t-row t-col) (= t-chess 100)) ))
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
@@ -189,16 +192,29 @@
                               )                                 
                             null) 
                         ; chess-picked-up
-                            (if (and (not (occupied? t-country t-row t-col))
-                                    (can-move (first chess-from) (second chess-from) (third chess-from) t-country t-row t-col)
-                                )     
-                          (begin
-                            (delete-occupied (first chess-from) (second chess-from) (third chess-from)) 
-                            (occupy t-country t-row t-col (fourth chess-from))
-                            (set! chess-picked-up #f)
-                            (set! chess-from null)
-                            (re-draw)
-                            ) null)))
+                          (let*  ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)]) 
+                          (if  (can-move c-country c-row c-col t-country t-row t-col)
+                            
+                            (if (not (occupied? t-country t-row t-col))                            
+                            (begin
+                               (delete-occupied c-country c-row c-col) 
+                               (occupy t-country t-row t-col c-chess)
+                               (set! chess-picked-up #f)
+                               (set! chess-from null)
+                               (re-draw)
+                             )
+                            ; else occupied
+                            (if (is-camp t-row t-col) null
+                            (let ([beat (beat-it c-chess t-chess)])
+                               (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
+                               (if (> beat 0) (occupy t-country t-row t-col c-chess) null)
+                               (delete-occupied c-country c-row c-col) 
+                               (set! chess-picked-up #f)
+                               (set! chess-from null)
+                               (re-draw)
+                          )))                         
+                          
+                          null))))
                           null)   
                    ) null
                 )]                
