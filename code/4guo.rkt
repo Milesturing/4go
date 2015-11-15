@@ -85,7 +85,7 @@
   (occupy down 1 0 39)
   (occupy up     1 0 38)
   (occupy left    0 0 40)
-  (occupy right  4 2 0)
+  (occupy right  2 2 0)
   (occupy left    5 4 100)
   
 )

@@ -6,7 +6,8 @@
         blue-pen red-pen white-pen blue-dashed-pen 
         my-font get-top-left-corner get-size-xy 
         left-country right-country row-num col-num
-        coordinatex is-camp is-base chess-code beat-it)
+        coordinatex is-camp is-base chess-code beat-it
+)
  
 ; =================================
 ;
@@ -121,9 +122,10 @@
 ; ===================================================================
 
 (define (chess-code num)
-  (match num [40 "司令"] [39 "军长"] [38 "师长"] [37 "旅长"] [36 "团长"] [35 "营长"] [34 "连长"] [33 "排长"] [11 "工兵"] [0 "炸弹"] [100 "地雷"] [10 "军旗"])
+  (match num [40 "司令"] [39 "军长"] [38 "师长"] [37 "旅长"] [36 "团长"] [35 "营长"] [34 "连长"] [33 "排长"] [30 "工兵"] [10 "军旗"] [100 "地雷"] [0 "炸弹"])
 )
 
 (define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
   (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
-      (sgn (- num1 num2))))
+     (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
+         (sgn (- num1 num2)))))
