@@ -17,18 +17,16 @@
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)]
-          [iota 0.1] [the-code (chess-code chess)]) ; iota is little offset
+          [iota 0.1] [code (chess-code chess)]) ; iota is little offset
      
     (send dc set-brush color 'solid)     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
-    (send dc set-font my-font) 
-    (match country 
-      [(== up) (send dc draw-text the-code  (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]     
-      [(== down) (send dc draw-text the-code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
-      [(== left)  (send dc draw-text the-code  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
-      [(== right) (send dc draw-text the-code (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
-      [(== middle) (send dc draw-text the-code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)]
+    (send dc set-font my-font)  
+    (cond 
+      [(eq? country left)  (send dc draw-text code  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
+      [(eq? country right) (send dc draw-text code (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
+      [ else (send dc draw-text code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)] ; when country = up, down, middle
      ) ; show text
 ))
 
