@@ -7,7 +7,7 @@
         my-font get-top-left-corner get-size-xy 
         left-country right-country row-num col-num
         coordinatex is-camp is-base chess-code beat-it
-        ally?
+        ally? chess-color
 )
  
 ; =================================
@@ -136,3 +136,13 @@
   (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
+
+(define (chess-color country)
+  (match country
+    [(== down) "red"]
+    [(== up)     "fuchsia"]
+    [(== left)    "green"]
+    [(== right)  "yellow"]
+    )) 
+    
+    

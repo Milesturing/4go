@@ -32,19 +32,16 @@
 
 ; ===================================================================
 
+
 (define (show-all-chess lst)
   (if (null? lst)
     null     
-    (let* ([fst (car lst)]
-            [country (first fst)]
-            [row (second fst)]
-            [col (third fst)]
-            [chess (fourth fst)]
-            [belong-to (fifth fst)] )
-      (show-chess country row col chess 
-                 (if (or (eq? belong-to up) (eq? belong-to down)) "red" "green") 
-                 )
+    (let*-values ([(fst) (values (car lst))]
+                       [(country row col chess belong-to) (apply values fst)])      
+      (show-chess country row col chess (chess-color belong-to))      
+      
       (show-all-chess (cdr lst))
+      
       )))
 
 
@@ -83,12 +80,12 @@
   
   (set! occupied-list null) ; 
   
-  (occupy down 1 4 39 left)
-  (occupy up     1 0 38 left)
-  (occupy left    0 0 40 down)
-  (occupy right  2 2 0 right)
-  (occupy left    5 2 38 up)
-  (occupy left    5 4 100 up)
+  (occupy down 1 4 39 down)
+  (occupy up     1 0 38 up)
+  (occupy left    0 0 40 left)
+  (occupy right  2 2 0 down)
+  (occupy right    5 2 38 right)
+  (occupy left    5 4 100 left)
   
 )
 
@@ -180,8 +177,8 @@
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
 
                      (if (not (null? which-chess))
-                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)] [t-chess (fourth which-chess)] [t-belong-to (fifth which-chess)]) 
-                               
+                         (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values which-chess)])
+                              
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
@@ -189,11 +186,11 @@
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
-                                (show-chess  t-country t-row t-col t-chess  "CornflowerBlue")
+                                (show-chess  t-country t-row t-col t-chess "Light Gray")
                               )                                 
                             null) 
                         ; chess-picked-up
-                          (let ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)] [c-belong-to (fifth chess-from)]) 
+                          (let-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)])  
                           (if  (can-move c-country c-row c-col t-country t-row t-col)
                             
                             (if (not (occupied? t-country t-row t-col))                            
