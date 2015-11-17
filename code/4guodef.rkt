@@ -7,6 +7,7 @@
         my-font get-top-left-corner get-size-xy 
         left-country right-country row-num col-num
         coordinatex is-camp is-base chess-code beat-it
+        ally?
 )
  
 ; =================================
@@ -110,6 +111,12 @@
      [(== left) up] 
      ))
 
+(define (ally? country1 country2) ; if they are allies
+  (and
+  (or (eq? country1 country2)
+     (eq? country1 (left-country (left-country country2))))
+  (not (eq? country1 middle)) (not (eq? country2 middle))))     
+       
 (define (is-camp country row col) ; is camp or not
   (and (not (eq? country middle))
           (or (= row col) (= (+ row col) 4)) (>= row 1) (<= row 3)

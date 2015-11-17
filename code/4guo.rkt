@@ -41,8 +41,11 @@
             [country (first fst)]
             [row (second fst)]
             [col (third fst)]
-            [chess (fourth fst)])
-      (show-chess country row col chess "red")
+            [chess (fourth fst)]
+            [belong-to (fifth fst)] )
+      (show-chess country row col chess 
+                 (if (or (eq? belong-to up) (eq? belong-to down)) "red" "green") 
+                 )
       (show-all-chess (cdr lst))
       )))
 
@@ -62,8 +65,8 @@
         (if (eq? (car list1) (car list2)) (sub-list? (cdr list1) (cdr list2)) #f)
   ))
                         
-(define (occupy country row col chess)
-   (set! occupied-list (cons (list country row col chess) occupied-list))   
+(define (occupy country row col chess belong-to)
+   (set! occupied-list (cons (list country row col chess belong-to) occupied-list))   
 )
 
 (define (delete-occupied country row col)
@@ -72,21 +75,22 @@
 
 (define (find-chess country row col) ; find the chess based on the coordinates
     (let ([item (filter (lambda (lst) (sub-list? (list country row col) lst)) occupied-list)])
-        (if (null? item) null (fourth (car item)))))
+        (if (null? item) (list country row col null null) (car item)  )))
 
 (define (occupied? country row col) 
-      (not (null? (find-chess country row col))))
+      (not (null? (fourth (find-chess country row col)))))
 ;
   
 (define (init-board)  
   
   (set! occupied-list null) ; 
   
-  (occupy down 1 0 39)
-  (occupy up     1 0 38)
-  (occupy left    0 0 40)
-  (occupy right  2 2 0)
-  (occupy left    5 4 100)
+  (occupy down 1 4 39 left)
+  (occupy up     1 0 38 left)
+  (occupy left    0 0 40 down)
+  (occupy right  2 2 0 right)
+  (occupy left    5 2 38 up)
+  (occupy left    5 4 100 up)
   
 )
 
@@ -99,7 +103,7 @@
     (and (>= ratio-x 0) (<= ratio-x 1)
            (>= ratio-y 0) (<= ratio-y 1))))
 
-(define (search-xy x y) ;
+(define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
   (let ([result null]
          [quit #f] )
      (for* ([country (list up left down right middle)]
@@ -109,7 +113,7 @@
      (let ([xy (get-top-left-corner country row col)]
             [ab (get-size-xy country)])
        (if (with-in x y  xy ab)
-          (begin (set! result (list country row col (find-chess country row col))) (set! quit #t))          
+          (begin (set! result (find-chess country row col)) (set! quit #t))          
           null
           )))
     result
@@ -176,10 +180,10 @@
                 (if button-pressed ; if the button is pressed
                    (begin
                      (set! which-chess (search-xy (send event get-x) (send event get-y)))
-  
+
                      (if (not (null? which-chess))
-                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)] [t-chess (fourth which-chess)]) 
-                         ;                                     
+                         (let ([t-country (first which-chess)] [t-row (second which-chess)] [t-col (third which-chess)] [t-chess (fourth which-chess)] [t-belong-to (fifth which-chess)]) 
+                               
                          (if (not chess-picked-up)
                         ; chess-not-picked-up
                         (if (and (occupied? t-country t-row t-col)
@@ -187,27 +191,26 @@
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
-                                (send dc set-brush "green" 'solid)
-                                (show-chess  t-country t-row t-col t-chess "green")
+                                (show-chess  t-country t-row t-col t-chess  "CornflowerBlue")
                               )                                 
                             null) 
                         ; chess-picked-up
-                          (let ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)]) 
+                          (let ([c-country (first chess-from)] [c-row (second chess-from)] [c-col (third chess-from)] [c-chess (fourth chess-from)] [c-belong-to (fifth chess-from)]) 
                           (if  (can-move c-country c-row c-col t-country t-row t-col)
                             
                             (if (not (occupied? t-country t-row t-col))                            
                             (begin
                                (delete-occupied c-country c-row c-col) 
-                               (occupy t-country t-row t-col c-chess)
+                               (occupy t-country t-row t-col c-chess c-belong-to)
                                (set! chess-picked-up #f)
                                (set! chess-from null)
                                (re-draw)
                              )
                             ; else occupied
-                            (if (is-camp t-country t-row t-col) null
+                            (if (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)) null
                             (let ([beat (beat-it c-chess t-chess)])
                                (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
-                               (if (> beat 0) (occupy t-country t-row t-col c-chess) null)
+                               (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to) null)
                                (delete-occupied c-country c-row c-col) 
                                (set! chess-picked-up #f)
                                (set! chess-from null)
