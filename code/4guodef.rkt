@@ -7,7 +7,7 @@
         my-font get-top-left-corner get-size-xy 
         left-country right-country row-num col-num
         coordinatex is-camp is-base chess-code beat-it
-        ally? chess-color
+        ally? chess-color draw-chess
 )
  
 ; =================================
@@ -111,7 +111,7 @@
      [(== left) up] 
      ))
 
-(define (ally? country1 country2) ; if they are allies
+(define (ally? country1 country2) ; if they are allies or same side
   (and
   (or (eq? country1 country2)
      (eq? country1 (left-country (left-country country2))))
@@ -137,12 +137,33 @@
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
-(define (chess-color country)
+(define (chess-color country) ; chooses different colors for different countries
   (match country
     [(== down) "red"]
     [(== up)     "fuchsia"]
     [(== left)    "green"]
     [(== right)  "yellow"]
     )) 
-    
-    
+
+; ===================================================================
+; draw a chess somewhere with its text and color
+
+(define (draw-chess dc country row col chess color) ; dc is the device
+  
+   (let ([xy (get-top-left-corner country row col)]
+          [ab (get-size-xy country)] 
+          [code (chess-code chess)]
+          [iota 0.1]) ; iota is a small offset
+     
+    (send dc set-brush color 'solid)     
+    (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
+     
+    (send dc set-font my-font)  
+    (cond 
+      [(eq? country left)  (send dc draw-text code  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
+      [(eq? country right) (send dc draw-text code (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
+      [ else (send dc draw-text code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)] ; when country = up, down, middle
+     ) ; show text
+))
+
+; ===================================================================    

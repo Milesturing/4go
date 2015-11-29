@@ -13,30 +13,12 @@
 
 ; ===================================================================
 
-(define (show-chess country row col chess color)
-  
-   (let ([xy (get-top-left-corner country row col)]
-          [ab (get-size-xy country)]
-          [iota 0.1] [code (chess-code chess)]) ; iota is little offset
-     
-    (send dc set-brush color 'solid)     
-    (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
-     
-    (send dc set-font my-font)  
-    (cond 
-      [(eq? country left)  (send dc draw-text code  (+ (first xy) (first ab)) (+ (second xy) (* (second ab) iota)) #f 0 (/ pi -2))]
-      [(eq? country right) (send dc draw-text code (first xy)  (+ (second xy) (* (second ab) (- 1 iota))) #f 0 (/ pi 2))]   
-      [ else (send dc draw-text code (+ (first xy) (* (first ab) iota)) (second xy) #f 0 0)] ; when country = up, down, middle
-     ) ; show text
-))
-
-
 (define (show-all-chess lst)
   (if (null? lst)
     null     
-    (let*-values ([(fst) (values (car lst))]
-                       [(country row col chess belong-to) (apply values fst)])      
-      (show-chess country row col chess (chess-color belong-to))      
+    
+    (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
+      (draw-chess dc country row col chess (chess-color belong-to))      
       
       (show-all-chess (cdr lst))
       
@@ -114,6 +96,9 @@
 
 ; ====================================================
 
+; (define (adjacent-list country row col)
+;  (if (is-camp country row col)
+      
 (define (can-move country row col country2 row2 col2) 
  (if (eq? country middle) 
    (or
@@ -184,7 +169,7 @@
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
-                                (show-chess  t-country t-row t-col t-chess "Light Gray")
+                                (draw-chess dc  t-country t-row t-col t-chess "Light Gray")
                               )                                 
                             null) 
                         ; chess-picked-up
