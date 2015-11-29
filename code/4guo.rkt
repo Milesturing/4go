@@ -169,7 +169,7 @@
                             (begin
                                 (set! chess-picked-up #t)
                                 (set! chess-from which-chess)
-                                (draw-chess dc  t-country t-row t-col t-chess "Light Gray")
+                                (draw-chess dc  t-country t-row t-col t-chess (chess-color 0))
                               )                                 
                             null) 
                         ; chess-picked-up
