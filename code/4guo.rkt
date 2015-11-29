@@ -7,28 +7,24 @@
 
 ; ===================================================================
 (define dc null)
-
 (define target (make-bitmap frame-size frame-size))
 (send target load-file "chessboard.png" 'png)
 
 ; ===================================================================
 
-(define (show-all-chess lst)
+(define (draw-all-chesses lst)
   (if (null? lst)
-    null     
-    
+    null         
     (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
       (draw-chess dc country row col chess (chess-color belong-to))      
-      
-      (show-all-chess (cdr lst))
-      
-      )))
+      (draw-all-chesses (cdr lst))
+    )))
 
 
 (define (re-draw)
      (send dc clear)
      (send dc draw-bitmap target 0 0)
-     (show-all-chess occupied-list)
+     (draw-all-chesses occupied-list)
 )
 
 ; ===================================================================
@@ -66,6 +62,7 @@
   (occupy right  2 2 0 down)
   (occupy right    5 2 38 right)
   (occupy left    5 4 100 left)
+  (occupy left    4 2 34 down)
   
 )
 
@@ -96,9 +93,6 @@
 
 ; ====================================================
 
-; (define (adjacent-list country row col)
-;  (if (is-camp country row col)
-      
 (define (can-move country row col country2 row2 col2) 
  (if (eq? country middle) 
    (or

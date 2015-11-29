@@ -137,7 +137,7 @@
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
-(define (chess-color belong-to-country) ; chooses different colors for different countries
+(define (chess-color belong-to-country) ; chooses different colors for different belonging-to-countries
   (match belong-to-country
     [(== down) "red"]
     [(== up)     "fuchsia"]
