@@ -67,31 +67,6 @@
 )
 
 ; ====================================================
-
-(define (with-in x y xy ab) ; detect if point (x, y) lies within the rectangle defined by top left xy and size ab
-  (let* ([x0 (first xy)] [y0 (second xy)]
-           [a (first ab)] [b (second ab)]
-           [ratio-x (/ (- x x0) a)] [ratio-y (/ (- y y0) b)])
-    (and (>= ratio-x 0) (<= ratio-x 1)
-           (>= ratio-y 0) (<= ratio-y 1))))
-
-(define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
-  (let ([result null]
-         [quit #f] )
-     (for* ([country (list up left down right middle)]
-              [row (range (row-num country))]
-              [col (range (col-num country))])
-       #:break quit
-     (let ([xy (get-top-left-corner country row col)]
-            [ab (get-size-xy country)])
-       (if (with-in x y  xy ab)
-          (begin (set! result (find-chess country row col)) (set! quit #t))          
-          null
-          )))
-    result
-    ))
-
-; ====================================================
   
 
 (define (route-list country row col country2 row2 col2 is-labor?)
@@ -152,57 +127,75 @@
   
 ; ====================================================
 
+(define (with-in x y xy ab) ; detect if point (x, y) lies within the rectangle defined by top left xy and size ab
+  (let* ([x0 (first xy)] [y0 (second xy)]
+           [a (first ab)] [b (second ab)]
+           [ratio-x (/ (- x x0) a)] [ratio-y (/ (- y y0) b)])
+    (and (>= ratio-x 0) (<= ratio-x 1)
+           (>= ratio-y 0) (<= ratio-y 1))))
+
+(define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
+  (let ([result null]
+         [quit #f] )
+     (for* ([country (list up left down right middle)]
+              [row (range (row-num country))]
+              [col (range (col-num country))])
+       #:break quit
+     (let ([xy (get-top-left-corner country row col)]
+            [ab (get-size-xy country)])
+       (if (with-in x y  xy ab)
+          (begin (set! result (find-chess country row col)) (set! quit #t))          
+          null
+          )))
+    result
+    ))
+
 (define chess-picked-up #f)
-(define chess-from null)
+(define chess-from null) 
+(define which-chess null)
 
-(define (process mouse-pressed mouse-x mouse-y)
-  (define which-chess null)
-                (if mouse-pressed ; if the button is pressed
-                   (begin
-                     (set! which-chess (search-xy mouse-x mouse-y))
-
-                     (if (not (null? which-chess))
-                         (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values which-chess)])
+(define (click-chess the-chess)
+    
+   (if (not (null? the-chess))  
+       (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
                               
-                         (if (not chess-picked-up)
-                        ; chess-not-picked-up
-                        (if (and (occupied? t-country t-row t-col)
-                                    (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
-                            (begin
-                                (set! chess-picked-up #t)
-                                (set! chess-from which-chess)
-                                (draw-chess dc  t-country t-row t-col t-chess (chess-color 0))
-                              )                                 
-                            null) 
-                        ; chess-picked-up
-                          (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
-                                             [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
-                          (if (> (length r-list) 1)
-                            ;
-                            (if (not (occupied? t-country t-row t-col))                            
-                            (begin
-                               (delete-occupied c-country c-row c-col) 
-                               (occupy t-country t-row t-col c-chess c-belong-to)
-                               (set! chess-picked-up #f)
-                               (set! chess-from null)
-                               (re-draw)
-                             )
-                            ; else occupied
-                            (if (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)) null
-                            (let ([beat (beat-it c-chess t-chess)])
-                               (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
-                               (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to) null)
-                               (delete-occupied c-country c-row c-col) 
-                               (set! chess-picked-up #f)
-                               (set! chess-from null)
-                               (re-draw)
-                          )))                         
-                          
-                          null))))
-                          null)   
-                   ) null
-                )
-  )
+       (if (not chess-picked-up)
+       ; chess-not-picked-up
+       (if (and (occupied? t-country t-row t-col)
+                   (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
+        (begin
+                   (set! chess-picked-up #t)
+                   (set! chess-from the-chess)
+                   (draw-chess dc  t-country t-row t-col t-chess (chess-color 0))
+         )                                 
+         null) 
+         
+        ; chess-picked-up
+        (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
+                           [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
+          (if (> (length r-list) 1)
+           ;
+           (if (not (occupied? t-country t-row t-col))                            
+             (begin
+                     (delete-occupied c-country c-row c-col) 
+                     (occupy t-country t-row t-col c-chess c-belong-to)
+                     (set! chess-picked-up #f)
+                     (set! chess-from null)
+                     (re-draw)
+             )
+             ; else occupied
+                (if (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)) null
+                   (let ([beat (beat-it c-chess t-chess)])
+                       (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
+                       (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to) null)
+                       (delete-occupied c-country c-row c-col) 
+                       (set! chess-picked-up #f)
+                       (set! chess-from null)
+                       (re-draw)
+              )))                                                   
+       null))))   
+  null))
+
 
 ; ====================================================
 ; draw the animation
@@ -215,13 +208,14 @@
       (new (class canvas%
              (super-new [parent my-frame])
              [define/override (on-paint)
-               (set! dc (send my-canvas get-dc))
-               (re-draw) ; draw the current chess board
+                 (set! dc (send my-canvas get-dc))
+                 (re-draw) ; draw the current chess board
               ]
               [define/override (on-event event) ; mouse event
-                (set! dc (send my-canvas get-dc))
-                (process (send event button-down? 'any) 
-                             (send event get-x) (send event get-y)) ; get the mouse status and x, y
+                 (set! dc (send my-canvas get-dc))
+                 (if (send event button-down? 'any) ; if the mouse is pressed
+                     (click-chess (search-xy (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
+                  null) 
                ]             
   )))
 
