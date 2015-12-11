@@ -151,31 +151,15 @@
 )))
   
 ; ====================================================
-; draw the animation
+
 (define chess-picked-up #f)
 (define chess-from null)
 
-(define my-frame (new frame% [label "米勒酷四国军棋"] ; define a new frame
-                                  [width frame-size] [height frame-size]
-                                  [alignment '(center center)] ))
-
-(define my-canvas ; set up a canvas for pictures
-      (new (class canvas%
-             (super-new [parent my-frame])
-             [define/override (on-paint)
-               (set! dc (send my-canvas get-dc))
-               (re-draw) ; draw the board according to current status
-              ]
-             
-              [define/override (on-event event)
-                (define button-pressed (send event button-down? 'any))
-                ;
-                (define which-chess null)
-                (set! dc (send my-canvas get-dc))
-
-                (if button-pressed ; if the button is pressed
+(define (process mouse-pressed mouse-x mouse-y)
+  (define which-chess null)
+                (if mouse-pressed ; if the button is pressed
                    (begin
-                     (set! which-chess (search-xy (send event get-x) (send event get-y)))
+                     (set! which-chess (search-xy mouse-x mouse-y))
 
                      (if (not (null? which-chess))
                          (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values which-chess)])
@@ -217,9 +201,29 @@
                           null))))
                           null)   
                    ) null
-                )]                
-             ))
+                )
   )
+
+; ====================================================
+; draw the animation
+;
+(define my-frame (new frame% [label "米勒酷四国军棋"] ; define a new frame
+                                  [width frame-size] [height frame-size]
+                                  [alignment '(center center)] ))
+
+(define my-canvas ; set up a canvas for pictures
+      (new (class canvas%
+             (super-new [parent my-frame])
+             [define/override (on-paint)
+               (set! dc (send my-canvas get-dc))
+               (re-draw) ; draw the current chess board
+              ]
+              [define/override (on-event event) ; mouse event
+                (set! dc (send my-canvas get-dc))
+                (process (send event button-down? 'any) 
+                             (send event get-x) (send event get-y)) ; get the mouse status and x, y
+               ]             
+  )))
 
 (init-board) ; initialize it!
 (send my-frame show #t) ; show it!
