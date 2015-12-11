@@ -92,6 +92,30 @@
     ))
 
 ; ====================================================
+  
+
+(define (route-list country row col country2 row2 col2 is-labor?)
+  ; move from one position to another position, according to current states of the board
+  ; if somewhere is blocked, the move is not allowed, returns original position of length 1
+  
+  ; if the move is successful, returns the list of route, and prepare to move to or "fight with" the chess 
+  ; in destination.
+  (define result (list (list country row col)) )
+  ; 
+  (if (and (eq? country country2)
+             (or
+                   (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 1
+                   (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 2
+              )) ; one step cases
+     (set! result (append result (list (list country2 row2 col2)) ))
+     null)
+  (if (and (on-rail country row col) (on-rail country2 row2 col2))
+     null ; we should do something here
+     null)
+  ; return
+  result
+)
+        
 
 (define (can-move country row col country2 row2 col2) 
  (if (eq? country middle) 
@@ -108,21 +132,21 @@
     (can-move country2 row2 col2 country row col)
   (if (eq? country country2)
      (or
-     (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1
-     (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2
-     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3
-     (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4
+     (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1 : on the rail
+     (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2 : on the rail
+     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3 : one step
+     (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4 : one step
   ) 
   ; else                 
   (or   
   (and (eq? country2 (right-country country))
-          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1'
+          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1' : on the rail
   (and (eq? country2 (left-country country))
-          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2'
+          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2' : on the rail
   (and (eq? country2 (right-country (right-country country)))
           (even? col) (= (+ col2 col) 4) 
           (or (and (= col 2) (= row 0) (= row2 0)) 
-               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3'
+               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3' : on the rail
   )))
 )))
   
@@ -167,9 +191,10 @@
                               )                                 
                             null) 
                         ; chess-picked-up
-                          (let-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)])  
-                          (if  (can-move c-country c-row c-col t-country t-row t-col)
-                            
+                          (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
+                                             [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
+                          (if (> (length r-list) 1)
+                            ;
                             (if (not (occupied? t-country t-row t-col))                            
                             (begin
                                (delete-occupied c-country c-row c-col) 

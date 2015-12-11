@@ -4,10 +4,10 @@
 
 (provide up left down right middle lsize rsize frame-size
         blue-pen red-pen white-pen blue-dashed-pen 
-        my-font get-top-left-corner get-size-xy 
+        my-font get-top-left-corner get-size-xy valid?
         left-country right-country row-num col-num
-        coordinatex is-camp is-base chess-code beat-it
-        ally? chess-color draw-chess
+        coordinatex is-camp is-base not-middle on-rail
+        chess-code beat-it ally? chess-color draw-chess 
 )
  
 ; =================================
@@ -111,6 +111,10 @@
      [(== left) up] 
      ))
 
+(define (not-middle country)
+  (not (eq? country middle))
+)
+
 (define (ally? country1 country2) ; if they are allies or same side
   (and
   (or (eq? country1 country2)
@@ -126,6 +130,14 @@
   (and (not (eq? country middle)) (= row 5) (or (= col 1) (= col 3)))
 )
 
+(define (on-rail country row col) ; is on railway or not
+  (or (eq? country middle) (= row 0) (= row 4) 
+       (and (= col 0) (< row 5)) (and (= col 4) (< row 5))))
+
+(define (valid? country row col) ; if a position is valid
+     (and (>= row 0) (< row (row-num country))
+            (>= col 0) (< col (col-num country))))
+         
 ; ===================================================================
 
 (define (chess-code num)
