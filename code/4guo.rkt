@@ -103,7 +103,9 @@
               [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
               [(and (eq? country2 (right-country (right-country country))) (even? col) (= (+ col2 col) 4))
                 (append (direct-row country row 0 col) null (direct-row country2 0 row2 col2))] ; middle is important!
-
+              [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
+              [(and (eq? country middle) (eq? country2 middle) (= col2 col)) (direct-row middle row row2 col)]
+              
               [else (list (list country row col))])
      )
      null)
