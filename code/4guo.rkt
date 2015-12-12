@@ -67,7 +67,17 @@
 )
 
 ; ====================================================
-  
+
+(define (direct-row country row row2 col) ; from (country row col) to (country row2 col)
+  (cond [(= row2 row) (list (list country row col))]
+           [(> row2 row) (cons (list country row col) (direct-row country (add1 row) row2 col))]
+           [(< row2 row) (reverse (direct-row country row2 row col))] ))
+
+(define (direct-col country row col col2) ; from (country row col?) to (country row col2)
+  (cond [(= col2 col) (list (list country row col))]
+           [(> col2 col) (cons (list country row col) (direct-col country row (add1 col) col2))]
+           [(< col2 col) (reverse (direct-col country row col2 col))] ))
+
 
 (define (route-list country row col country2 row2 col2 is-labor?)
   ; move from one position to another position, according to current states of the board
@@ -75,18 +85,29 @@
   
   ; if the move is successful, returns the list of route, and prepare to move to or "fight with" the chess 
   ; in destination.
-  (define result (list (list country row col)) )
+  (define result (list (list country row col)))
   ; 
   (if (and (eq? country country2)
              (or
                    (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 1
                    (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 2
               )) ; one step cases
-     (set! result (append result (list (list country2 row2 col2)) ))
+     (set! result (list (list country row col)  (list country2 row2 col2)) )
      null)
   (if (and (on-rail country row col) (on-rail country2 row2 col2))
-     null ; we should do something here
+     ; we should do something here
+     (set! result
+     (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
+              [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
+              [(and (eq? country2 (right-country country)) (= col 4) (= col2 0)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+              [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+              [else (list (list country row col))])
+     )
      null)
+  ; if blocked, set it to one position
+  (if  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
+      (set! result (list (list country row col))) 
+      null)
   ; return
   result
 )
@@ -152,7 +173,6 @@
 
 (define chess-picked-up #f)
 (define chess-from null) 
-(define which-chess null)
 
 (define (click-chess the-chess)
     
