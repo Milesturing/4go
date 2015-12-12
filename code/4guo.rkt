@@ -62,7 +62,7 @@
   (define chess #f)
   (define belong-to null)
    
-  (for ([i (range 20)])
+  (for* ([i (range 20)])
 
     (set! country (list-ref (list up down left right middle) (random 4)))
     (set! row (list-ref (range (row-num country)) (random (row-num country))))
@@ -91,6 +91,61 @@
            [(< col2 col) (reverse (direct-col country row col2 col))] ))
 
 
+(define (neighbours-on-rail country row col)
+    (define they null)
+    (define neighbours 
+         (list (list country (add1 row) col)
+               (list country (sub1 row) col)
+               (list country row (add1 col))
+               (list country row (sub1 col))
+         ))  
+    (if (and (not-middle country) (= row 0) (= col 0))
+       (set! neighbours (cons (list (left-country country) 0 4) neighbours))
+       null
+     )  
+    (if (and (not-middle country) (= row 0) (= col 4))
+       (set! neighbours (cons (list (right-country country) 0 0) neighbours))
+       null
+     )
+  (if (and (not-middle country) (= row 0) (even? col))
+      (set! neighbours (cons
+           (cond [(eq? country down) (list middle 2 (/ col 2))]
+                    [(eq? country up) (list middle 0 (- 2 (/ col 2)))]
+                    [(eq? country left) (list middle (/ col 2) 0)]
+                    [(eq? country right) (list middle (- 2 (/ col 2)) 2)]
+                    ) neighbours))
+      null
+     )
+     (if (eq? country middle)
+        (for* ([country2 (list down up left right)]
+               [col2 (list 0 2 4)])
+          (if (member (list country row col) (neighbours-on-rail country2 0 col2))
+             (set! neighbours (cons (list country2 0 col2) neighbours))             
+              null
+          ))
+        null
+     )        
+    (if (not (on-rail country row col)) null
+       (set! they (filter (lambda (x) (and (apply on-rail x) (apply valid? x)))
+                              neighbours))
+    )
+   they
+)  
+        
+  
+  
+(define (labor-fly country row col country2 row2 col2) ; if the chess is a "labor", on the rail assumed
+  (define result-list null)
+  ; have to ensure it does not pass the same place twice
+  
+  (for* ([next-pos (neighbours-on-rail country row col)])
+    
+    null
+    )
+  
+  null
+)  
+
 (define (route-list country row col country2 row2 col2 is-labor?)
   ; move from one position to another position, according to current states of the board
   ; if somewhere is blocked, the move is not allowed, returns original position of length 1
@@ -107,30 +162,31 @@
      (set! result (list (list country row col)  (list country2 row2 col2)) )
      null)
   (if (and (on-rail country row col) (on-rail country2 row2 col2))
-     ; we should do something here
-     (set! result
-     (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
-              [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
-              [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
-              [(and (eq? country middle) (eq? country2 middle) (= col2 col)) (direct-row middle row row2 col)]
-              [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
-              [(and (eq? country2 (right-country country)) (= col 4) (= col2 0)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
-              [(and (eq? country2 (right-country (right-country country))) (even? col) (= (+ col2 col) 4) (not (and (= col 2) (or (= row 4) (= row2 4)))))
-                (append (direct-row country row 0 col) 
-                             (cond [(eq? country down) (direct-row middle 2 0 (/ col 2))]
-                                      [(eq? country up)     (direct-row middle 0 2 (- 2 (/ col 2)))]
-                                      [(eq? country left)    (direct-col  middle (/ col 2) 0 2)]
-                                      [(eq? country right)  (direct-col  middle (- 2 (/ col 2)) 2 0)])
-                            (direct-row country2 0 row2 col2))] ; middle part is important!
-              [(and (not-middle country) (eq? country2 middle) (not (and (= col 2) (or (= row 4) (= row2 4)))))
-                (cond [(and (eq? country down) (= col2 (/ col 2))) (append (direct-row country row 0 col) (direct-row middle 2 row2 col2))]
-                         [(and (eq? country up)     (= col2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-row middle 0 row2 col2))]
-                         [(and (eq? country left)    (= row2 (/ col 2))) (append (direct-row country row 0 col) (direct-col middle row2 0 col2))]
-                         [(and (eq? country right)  (= row2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-col middle row2 2 col2))]
-                         [else null])]
-              [(and (eq? country middle) (not-middle country2)) (reverse (route-list country2 row2 col2 country row col is-labor?))]
-              [else null])
-     )
+     (if is-labor? 
+        (labor-fly country row col country2 row2 col2)
+        (set! result
+              (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
+                       [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
+                       [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
+                       [(and (eq? country middle) (eq? country2 middle) (= col2 col)) (direct-row middle row row2 col)]
+                       [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+                       [(and (eq? country2 (right-country country)) (= col 4) (= col2 0)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+                       [(and (eq? country2 (right-country (right-country country))) (even? col) (= (+ col2 col) 4) (not (and (= col 2) (or (= row 4) (= row2 4)))))
+                          (append (direct-row country row 0 col) 
+                                       (cond [(eq? country down) (direct-row middle 2 0 (/ col 2))]
+                                                [(eq? country up)     (direct-row middle 0 2 (- 2 (/ col 2)))]
+                                                [(eq? country left)    (direct-col  middle (/ col 2) 0 2)]
+                                                [(eq? country right)  (direct-col  middle (- 2 (/ col 2)) 2 0)])
+                                       (direct-row country2 0 row2 col2))] ; middle part is important!
+                      [(and (not-middle country) (eq? country2 middle) (not (and (= col 2) (or (= row 4) (= row2 4)))))
+                         (cond [(and (eq? country down) (= col2 (/ col 2))) (append (direct-row country row 0 col) (direct-row middle 2 row2 col2))]
+                                 [(and (eq? country up)     (= col2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-row middle 0 row2 col2))]
+                                 [(and (eq? country left)    (= row2 (/ col 2))) (append (direct-row country row 0 col) (direct-col middle row2 0 col2))]
+                                 [(and (eq? country right)  (= row2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-col middle row2 2 col2))]
+                                 [else null])]
+                      [(and (eq? country middle) (not-middle country2)) (reverse (route-list country2 row2 col2 country row col is-labor?))]
+                      [else null])
+     ))
      null)
   ; if blocked, set it to one position
   (if (> (length result) 2)
