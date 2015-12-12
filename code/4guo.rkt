@@ -99,21 +99,31 @@
      (set! result
      (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
               [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
-              [(and (eq? country2 (right-country country)) (= col 4) (= col2 0)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
-              [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
-              [(and (eq? country2 (right-country (right-country country))) (even? col) (= (+ col2 col) 4) 
-               (or (and (= col 2) (= row 0) (= row2 0)) (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))))
-                (append (direct-row country row 0 col) null (direct-row country2 0 row2 col2))] ; middle is important!
               [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
               [(and (eq? country middle) (eq? country2 middle) (= col2 col)) (direct-row middle row row2 col)]
-              
-              [else (list (list country row col))])
+              [(and (eq? country2 (left-country country)) (= col 0) (= col2 4)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+              [(and (eq? country2 (right-country country)) (= col 4) (= col2 0)) (append (direct-row country row 0 col) (direct-row country2 0 row2 col2))]
+              [(and (eq? country2 (right-country (right-country country))) (even? col) (= (+ col2 col) 4) (not (and (= col 2) (or (= row 4) (= row2 4)))))
+                (append (direct-row country row 0 col) 
+                             (cond [(eq? country down) (direct-row middle 2 0 (/ col 2))]
+                                      [(eq? country up)     (direct-row middle 0 2 (- 2 (/ col 2)))]
+                                      [(eq? country left)    (direct-col  middle (/ col 2) 0 2)]
+                                      [(eq? country right)  (direct-col  middle (- 2 (/ col 2)) 2 0)])
+                            (direct-row country2 0 row2 col2))] ; middle part is important!
+              [(and (not-middle country) (eq? country2 middle) (not (and (= col 2) (or (= row 4) (= row2 4)))))
+                (cond [(and (eq? country down) (= col2 (/ col 2))) (append (direct-row country row 0 col) (direct-row middle 2 row2 col2))]
+                         [(and (eq? country up)     (= col2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-row middle 0 row2 col2))]
+                         [(and (eq? country left)    (= row2 (/ col 2))) (append (direct-row country row 0 col) (direct-col middle row2 0 col2))]
+                         [(and (eq? country right)  (= row2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-col middle row2 2 col2))]
+                         [else null])]
+              [(and (eq? country middle) (not-middle country2)) (reverse (route-list country2 row2 col2 country row col is-labor?))]
+              [else null])
      )
      null)
   ; if blocked, set it to one position
   (if (> (length result) 2)
       (if  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
-          (set! result (list (list country row col))) 
+          (set! result null) 
       null)
   null)    
   ; return
@@ -170,12 +180,8 @@
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
                            [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
-          (if (= (length r-list) 1)
-             (begin
-                     (set! chess-picked-up #f)
-                     (set! chess-from null)
-                     (re-draw)
-             )
+          (if (<= (length r-list) 1)
+            null
            (if (not (occupied? t-country t-row t-col))                            
              (begin
                      (delete-occupied c-country c-row c-col) 

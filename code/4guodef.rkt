@@ -101,6 +101,7 @@
      [(== right) up]
      [(== up) left]
      [(== left) down]
+     [else null]
      ))
 
 (define (left-country country)
@@ -109,6 +110,7 @@
      [(== right) down]
      [(== up) right]
      [(== left) up] 
+     [else null]
      ))
 
 (define (not-middle country)
