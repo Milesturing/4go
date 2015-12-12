@@ -110,9 +110,11 @@
      )
      null)
   ; if blocked, set it to one position
-  (if  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
-      (set! result (list (list country row col))) 
+  (if (> (length result) 2)
+      (if  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
+          (set! result (list (list country row col))) 
       null)
+  null)    
   ; return
   result
 )
@@ -165,8 +167,12 @@
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
                            [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
-          (if (> (length r-list) 1)
-           ;
+          (if (= (length r-list) 1)
+             (begin
+                     (set! chess-picked-up #f)
+                     (set! chess-from null)
+                     (re-draw)
+             )
            (if (not (occupied? t-country t-row t-col))                            
              (begin
                      (delete-occupied c-country c-row c-col) 
@@ -185,7 +191,7 @@
                        (set! chess-from null)
                        (re-draw)
               )))                                                   
-       null))))   
+       ))))   
   null))
 
 
