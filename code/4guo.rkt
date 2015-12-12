@@ -116,41 +116,8 @@
   ; return
   result
 )
-        
-
-(define (can-move country row col country2 row2 col2) 
- (if (eq? country middle) 
-   (or
-        (and (eq? country2 left) (= col2 (+ row row)) (if (= row 1) (= row2 0) (< row2 5)))
-        (and (eq? country2 right) (= col2 (- 4 row row)) (if (= row 1) (= row2 0)  (< row2 5)))
-        (and (eq? country2 middle) (= row2 row) (not (= col2 col)))
-
-        (and (eq? country2 down) (= col2 (+ col col)) (if (= col 1) (= row2 0) (< row2 5)))
-        (and (eq? country2 up) (= col2 (- 4 col col)) (if (= col 1) (= row2 0) (< row2 5)))
-        (and (eq? country2 middle) (= col2 col) (not (= row2 row)))
-    )    
-  (if (eq? country2 middle)
-    (can-move country2 row2 col2 country row col)
-  (if (eq? country country2)
-     (or
-     (and (or (= col 0) (= col 4)) (= col2 col) (not (= row2 row)) (< row 5) (< row2 5)) ; case 1 : on the rail
-     (and (or (= row 0) (= row 4)) (= row2 row) (not (= col2 col))) ; case 2 : on the rail
-     (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 3 : one step
-     (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 4 : one step
-  ) 
-  ; else                 
-  (or   
-  (and (eq? country2 (right-country country))
-          (= col 4) (not (= row 5)) (= col2 0) (not (= row2 5))) ; case 1' : on the rail
-  (and (eq? country2 (left-country country))
-          (= col 0) (not (= row 5)) (= col2 4) (not (= row2 5))) ; case 2' : on the rail
-  (and (eq? country2 (right-country (right-country country)))
-          (even? col) (= (+ col2 col) 4) 
-          (or (and (= col 2) (= row 0) (= row2 0)) 
-               (and (not (= col 2)) (not (= row 5)) (not (= row2 5)))) ; case 3' : on the rail
-  )))
-)))
   
+
 ; ====================================================
 
 (define (with-in x y xy ab) ; detect if point (x, y) lies within the rectangle defined by top left xy and size ab
