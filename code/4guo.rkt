@@ -55,14 +55,26 @@
 (define (init-board)  
   
   (set! occupied-list null) ; 
-  
-  (occupy down 1 4 39 down)
-  (occupy up     1 0 38 up)
-  (occupy left    0 0 40 left)
-  (occupy right  2 2 0 down)
-  (occupy right    5 2 38 right)
-  (occupy left    5 4 100 left)
-  (occupy left    4 2 34 down)
+   
+  (define country null)
+  (define row #f)
+  (define col #f)
+  (define chess #f)
+  (define belong-to null)
+   
+  (for ([i (range 20)])
+
+    (set! country (list-ref (list up down left right middle) (random 4)))
+    (set! row (list-ref (range (row-num country)) (random (row-num country))))
+    (set! col (list-ref (range (col-num country)) (random (col-num country))))
+    (set! chess (list-ref '(40 39 38 37 36 35 34 33 30 100 0) (random 11)))
+    (set! belong-to (list-ref (list up down left right) (random 4)))
+    
+    (if (occupied? country row col)
+                 (set! i (sub1 i)) 
+                 (occupy country row col chess belong-to)     
+    )             
+   )
   
 )
 
