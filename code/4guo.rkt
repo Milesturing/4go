@@ -16,7 +16,7 @@
   (if (null? lst)
     null         
     (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
-      (draw-chess dc country row col chess (chess-color belong-to))      
+      (draw-chess dc country row col chess (chess-color belong-to) 'solid)      
       (draw-all-chesses (cdr lst))
     )))
 
@@ -27,8 +27,10 @@
      (draw-all-chesses occupied-list)
      
      (for* ([country (list down up left right)]) ; draw some flag
-             (draw-chess dc country 5 5 null (chess-color country))
-       ) 
+
+       (draw-chess dc country 5 5 null (chess-color country) 
+                         (if (eq? country which-turn) 'crossdiag-hatch 'solid) )
+      ) 
 )
 
 ; ===================================================================
@@ -66,19 +68,29 @@
   (define chess #f)
   (define belong-to null)
    
-  (for* ([i (range 50)])
-
-    (set! country (list-ref (list up down left right middle) (random 4)))
-    (set! row (list-ref (range (row-num country)) (random (row-num country))))
-    (set! col (list-ref (range (col-num country)) (random (col-num country))))
-    (set! chess (list-ref '(40 39 38 37 36 35 34 33 30 100 10 0) (random 11)))
-    (set! belong-to (list-ref (list up down left right) (random 4)))
+  (define whole-set
+    (list 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33 30 30 30 100 100 100 10 0 0) 
+  )  
     
-    (if (or (occupied? country row col) (is-camp country row col))
-                 (set! i (sub1 i)) 
-                 (occupy country row col chess belong-to)     
+  (define (generate-randomly-country-row-col)
+    
+       (set! country (list-ref (list up down left right middle) (random 4)))
+       (set! row (list-ref (range (row-num country)) (random (row-num country))))
+       (set! col (list-ref (range (col-num country)) (random (col-num country))))
+           
+      (if (or (occupied? country row col) (is-camp country row col))
+          (generate-randomly-country-row-col) null)  
+
+    )
+
+  (for* ([belong-to (list up down left right)]
+            [chess whole-set])
+    
+    (generate-randomly-country-row-col)
+                 
+    (occupy country row col chess belong-to)     
     )             
-   )
+   
   
 )
 
@@ -267,6 +279,7 @@
 
 (define chess-picked-up #f)
 (define chess-from null) 
+(define which-turn down)
 
 (define (click-chess the-chess)
     
@@ -275,12 +288,12 @@
                               
        (if (not chess-picked-up)
        ; chess-not-picked-up
-       (if (and (occupied? t-country t-row t-col)
+       (if (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
                    (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
         (begin
                    (set! chess-picked-up #t)
                    (set! chess-from the-chess)
-                   (draw-chess dc  t-country t-row t-col t-chess (chess-color 0))
+                   (draw-chess dc  t-country t-row t-col t-chess (chess-color 0) 'solid)
          )                                 
          null) 
          
@@ -299,6 +312,7 @@
                      (occupy t-country t-row t-col c-chess c-belong-to)
                      (set! chess-picked-up #f)
                      (set! chess-from null)
+                     (set! which-turn (right-country which-turn))
                      (re-draw)
              )
              ; else occupied
@@ -309,6 +323,7 @@
                        (delete-occupied c-country c-row c-col) 
                        (set! chess-picked-up #f)
                        (set! chess-from null)
+                       (set! which-turn (right-country which-turn))
                        (re-draw)
               )))                                                   
        ))))   

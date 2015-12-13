@@ -163,14 +163,14 @@
 ; ===================================================================
 ; draw a chess somewhere with its text and color
 
-(define (draw-chess dc country row col chess color) ; dc is the device
+(define (draw-chess dc country row col chess color filled-or-not) ; dc is the device
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)] 
           [code (chess-code chess)]
           [iota 0.1]) ; iota is a small offset
      
-    (send dc set-brush color 'solid)     
+    (send dc set-brush color filled-or-not) ; can be 'solid     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font)  
