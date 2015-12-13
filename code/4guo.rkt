@@ -62,15 +62,15 @@
   (define chess #f)
   (define belong-to null)
    
-  (for* ([i (range 20)])
+  (for* ([i (range 50)])
 
     (set! country (list-ref (list up down left right middle) (random 4)))
     (set! row (list-ref (range (row-num country)) (random (row-num country))))
     (set! col (list-ref (range (col-num country)) (random (col-num country))))
-    (set! chess (list-ref '(40 39 38 37 36 35 34 33 30 100 0) (random 11)))
+    (set! chess (list-ref '(40 39 38 37 36 35 34 33 30 100 10 0) (random 11)))
     (set! belong-to (list-ref (list up down left right) (random 4)))
     
-    (if (occupied? country row col)
+    (if (or (occupied? country row col) (is-camp country row col))
                  (set! i (sub1 i)) 
                  (occupy country row col chess belong-to)     
     )             
@@ -90,6 +90,7 @@
            [(> col2 col) (cons (list country row col) (direct-col country row (add1 col) col2))]
            [(< col2 col) (reverse (direct-col country row col2 col))] ))
 
+; ====================================================
 
 (define (neighbours-on-rail country row col)
     (define they null)
@@ -135,16 +136,50 @@
   
   
 (define (labor-fly country row col country2 row2 col2) ; if the chess is a "labor", on the rail assumed
-  (define result-list null)
-  ; have to ensure it does not pass the same place twice
+; a very hard to code module, requires lots of endeavor
   
-  (for* ([next-pos (neighbours-on-rail country row col)])
+  (define (search-next-step fly-route-list)
     
-    null
-    )
+    (define chosen (list (list country row col)))
+    (define new-route null)
+    (define new-list null)
+    (define final-pos null)
+    (define quit #f)  
+    
+    (for* ([route fly-route-list])
+     #:break quit
+        (set! final-pos (last route))
+
+        (if (equal? final-pos (list country2 row2 col2))
+           (begin
+               (set! chosen route)
+               (set! quit #t)
+           )
+           ; else
+           (for* ([next-pos (apply neighbours-on-rail final-pos)])
+               (set! new-route (append route (list next-pos)))
+            ; else if
+              (if (or (and (apply occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
+                       (member next-pos route)) ; have to ensure the route does not pass the same place twice
+               null
+               (set! new-list (append new-list (list new-route)))
+           )))
+     )
+    
+  (if quit
+       chosen 
+       (if (null? new-list) (list (list country row col)) 
+          (search-next-step new-list)
+          )
+  ))
   
-  null
-)  
+  (if (and (on-rail country row col) (on-rail country2 row2 col2)) ; to check if on the rail
+       (search-next-step (list (list (list country row col))))
+       null
+   )    
+) 
+
+; ====================================================
 
 (define (route-list country row col country2 row2 col2 is-labor?)
   ; move from one position to another position, according to current states of the board
@@ -162,9 +197,9 @@
      (set! result (list (list country row col)  (list country2 row2 col2)) )
      null)
   (if (and (on-rail country row col) (on-rail country2 row2 col2))
+     (set! result
      (if is-labor? 
-        (labor-fly country row col country2 row2 col2)
-        (set! result
+              (labor-fly country row col country2 row2 col2)        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
                        [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
@@ -247,9 +282,13 @@
          
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
-                           [(r-list) (route-list c-country c-row c-col t-country t-row t-col (eq? c-chess 30) )]) 
+                           [(r-list) (route-list c-country c-row c-col t-country t-row t-col (= c-chess 30) )]) 
           (if (<= (length r-list) 1)
-            null
+             (begin
+                     (set! chess-picked-up #f)
+                     (set! chess-from null)
+                     (re-draw)
+              )
            (if (not (occupied? t-country t-row t-col))                            
              (begin
                      (delete-occupied c-country c-row c-col) 
