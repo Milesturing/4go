@@ -25,6 +25,10 @@
      (send dc clear)
      (send dc draw-bitmap target 0 0)
      (draw-all-chesses occupied-list)
+     
+     (for* ([country (list down up left right)]) ; draw some flag
+             (draw-chess dc country 5 5 null (chess-color country))
+       ) 
 )
 
 ; ===================================================================
