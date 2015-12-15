@@ -67,10 +67,6 @@
   (define col #f)
   (define chess #f)
   (define belong-to null)
-   
-  (define whole-set
-    (list 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33 30 30 30 100 100 100 10 0 0) 
-  )  
     
   (define (generate-randomly-country-row-col)
     
@@ -84,11 +80,12 @@
     )
 
   (for* ([belong-to (list up down left right)]
-            [chess whole-set])
+            [chess whole-chess-set])
     
     (generate-randomly-country-row-col)
                  
-    (occupy country row col chess belong-to)     
+    (occupy country row col chess belong-to)    
+    
     )             
    
   
@@ -108,7 +105,7 @@
 
 ; ====================================================
 
-(define (neighbours-on-rail country row col)
+(define (neighbours-on-rail country row col) ; successful, do not touch it
     (define they null)
     (define neighbours 
          (list (list country (add1 row) col)
@@ -151,7 +148,8 @@
         
   
   
-(define (labor-fly country row col country2 row2 col2) ; if the chess is a "labor", on the rail assumed
+(define (labor-fly country row col country2 row2 col2) ; successful, do not touch it
+; if the chess is a "labor", on the rail assumed
 ; a very hard to code module, requires lots of endeavor
   
   (define (search-next-step fly-route-list)
@@ -197,7 +195,7 @@
 
 ; ====================================================
 
-(define (route-list country row col country2 row2 col2 is-labor?)
+(define (route-list country row col is-labor? country2 row2 col2) ; chess = 30 to check if it is labor
   ; move from one position to another position, according to current states of the board
   ; if somewhere is blocked, the move is not allowed, returns original position of length 1
   
@@ -214,7 +212,7 @@
      null)
   (if (and (on-rail country row col) (on-rail country2 row2 col2))
      (set! result
-     (if is-labor? 
+     (if is-labor?
               (labor-fly country row col country2 row2 col2)        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
@@ -235,7 +233,7 @@
                                  [(and (eq? country left)    (= row2 (/ col 2))) (append (direct-row country row 0 col) (direct-col middle row2 0 col2))]
                                  [(and (eq? country right)  (= row2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-col middle row2 2 col2))]
                                  [else null])]
-                      [(and (eq? country middle) (not-middle country2)) (reverse (route-list country2 row2 col2 country row col is-labor?))]
+                      [(and (eq? country middle) (not-middle country2)) (reverse (route-list country2 row2 col2 is-labor? country row col))]
                       [else null])
      ))
      null)
@@ -299,7 +297,7 @@
          
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
-                           [(r-list) (route-list c-country c-row c-col t-country t-row t-col (= c-chess 30) )]) 
+                           [(r-list) (route-list c-country c-row c-col (= c-chess 30) t-country t-row t-col)]) 
           (if (<= (length r-list) 1)
              (begin
                      (set! chess-picked-up #f)

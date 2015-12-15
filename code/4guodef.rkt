@@ -8,6 +8,7 @@
         left-country right-country row-num col-num
         coordinatex is-camp is-base not-middle on-rail
         chess-code beat-it ally? chess-color draw-chess 
+        whole-chess-set
 )
  
 ; =================================
@@ -146,6 +147,10 @@
   (match num [40 "司令"] [39 "军长"] [38 "师长"] [37 "旅长"] [36 "团长"] [35 "营长"] [34 "连长"] [33 "排长"] [30 "工兵"] [10 "军旗"] [100 "地雷"] [0 "炸弹"] [else ""])
 )
 
+(define whole-chess-set
+    (list 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33 30 30 30 100 100 100 10 0 0) 
+)     
+
 (define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
   (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
@@ -163,14 +168,14 @@
 ; ===================================================================
 ; draw a chess somewhere with its text and color
 
-(define (draw-chess dc country row col chess color filled-or-not) ; dc is the device
+(define (draw-chess dc country row col chess color filled-style) ; dc is the device
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)] 
           [code (chess-code chess)]
           [iota 0.1]) ; iota is a small offset
      
-    (send dc set-brush color filled-or-not) ; can be 'solid     
+    (send dc set-brush color filled-style) ; can be 'solid     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )
      
     (send dc set-font my-font)  
