@@ -26,7 +26,7 @@
      (send dc draw-bitmap target 0 0)
      (draw-all-chesses occupied-list)
      
-     (for* ([country (list down up left right)]) ; draw some flag
+     (for* ([country (list down up left right)]) ; draw some extra flag
 
        (draw-chess dc country 5 5 null (chess-color country) 
                          (if (eq? country which-turn) 'crossdiag-hatch 'solid) )
@@ -56,39 +56,71 @@
 
 (define (occupied? country row col) 
       (not (null? (fourth (find-chess country row col)))))
+
+(define (delete-side belong-to) ; delete everything of a country
+  (set! occupied-list 
+        (remove* (list belong-to) occupied-list
+                 (lambda (item lst) (eq? item (last lst)))
+                 )))
+
+(define (empty? belong-to)
+  (not (member belong-to (map last occupied-list)))
+)
+  
+(define (next-country country)
+  (if (empty? (right-country country))
+      (next-country (right-country country))
+      (right-country country)
+  )    
+)      
+
 ;
   
+; ====================================================================
+; assignments
+
+(define (forbidden chess country row col)
+  
+  (define forb #f)
+;  (if (and (= chess 10) (not (is-base country row col))) 
+;      (set! forb #t) null)
+  (if (and (is-base country row col) (not (member chess (list 10 100 33 34))))
+      (set! forb #t) null)
+  (if (and (= chess 100) (not (>= row 4)))
+      (set! forb #t) null)
+  (if (and (= chess 0) (= row 0))
+      (set! forb #t) null)
+      
+  forb
+)
+
+(define (assign-country-row-col belong-to chess)
+
+  (define country null)
+  (define row null)
+  (define col null)
+  
+  (set! country belong-to)
+  
+  (set! row (list-ref (range (row-num belong-to)) (random (row-num belong-to))))
+  (set! col (list-ref (range (col-num belong-to)) (random (col-num belong-to))))
+                               
+  (if (or (occupied? country row col) (is-camp country row col) (forbidden chess country row col))
+       (assign-country-row-col belong-to chess) (list country row col))
+)
+
 (define (init-board)  
   
-  (set! occupied-list null) ; 
-   
+  (set! occupied-list null)
   (define country null)
-  (define row #f)
-  (define col #f)
-  (define chess #f)
-  (define belong-to null)
-    
-  (define (generate-randomly-country-row-col)
-    
-       (set! country (list-ref (list up down left right middle) (random 4)))
-       (set! row (list-ref (range (row-num country)) (random (row-num country))))
-       (set! col (list-ref (range (col-num country)) (random (col-num country))))
-           
-      (if (or (occupied? country row col) (is-camp country row col))
-          (generate-randomly-country-row-col) null)  
-
-    )
 
   (for* ([belong-to (list up down left right)]
-            [chess whole-chess-set])
-    
-    (generate-randomly-country-row-col)
-                 
-    (occupy country row col chess belong-to)    
-    
-    )             
-   
-  
+         [chess whole-chess-set])
+      
+         (let*-values ([(country row col) (apply values (assign-country-row-col belong-to chess))])
+            (occupy country row col chess belong-to)
+         )
+  )   
 )
 
 ; ====================================================
@@ -310,18 +342,25 @@
                      (occupy t-country t-row t-col c-chess c-belong-to)
                      (set! chess-picked-up #f)
                      (set! chess-from null)
-                     (set! which-turn (right-country which-turn))
+                     (set! which-turn (next-country which-turn))
                      (re-draw)
              )
              ; else occupied
                 (if (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)) null
                    (let ([beat (beat-it c-chess t-chess)])
-                       (if (> beat -1) (delete-occupied t-country t-row t-col) null)      
+                       (if (> beat -1) 
+                           (begin
+                               (delete-occupied t-country t-row t-col)
+                               (if (= t-chess 10)
+                                   (delete-side t-belong-to); delete everything!
+                                   null
+                               ))    
+                           null)      
                        (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to) null)
                        (delete-occupied c-country c-row c-col) 
                        (set! chess-picked-up #f)
                        (set! chess-from null)
-                       (set! which-turn (right-country which-turn))
+                       (set! which-turn (next-country which-turn))
                        (re-draw)
               )))                                                   
        ))))   

@@ -148,7 +148,7 @@
 )
 
 (define whole-chess-set
-    (list 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33 30 30 30 100 100 100 10 0 0) 
+    (list 10 100 100 100 0 0 30 30 30 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33) ; order is relevant
 )     
 
 (define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
