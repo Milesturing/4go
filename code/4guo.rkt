@@ -82,8 +82,8 @@
 (define (forbidden chess country row col)
   
   (define forb #f)
-;  (if (and (= chess 10) (not (is-base country row col))) 
-;      (set! forb #t) null)
+  (if (and (= chess 10) (not (is-base country row col))) 
+      (set! forb #t) null)
   (if (and (is-base country row col) (not (member chess (list 10 100 33 34))))
       (set! forb #t) null)
   (if (and (= chess 100) (not (>= row 4)))
