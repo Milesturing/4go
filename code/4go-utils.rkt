@@ -2,8 +2,8 @@
 
 ; utilities
 
-(require "4go-def.rkt")
-(provide search-xy)
+(require "4go-def.rkt") 
+(provide search-xy) ; (search-xy find-chess x y)
 
 ;==================================================================================================
 

@@ -2,7 +2,7 @@
 
 (require "4go-def.rkt" "4go-labor.rkt")
 
-(provide route-list)
+(provide route-list) ; (route-list occupied? country row col is-labor? country2 row2 col2)
 
 ; route-list modules
 ;=================================================================================================  
