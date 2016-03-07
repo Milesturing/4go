@@ -3,7 +3,7 @@
 ; Be sure to run drawboard.rkt first to generate chessboard.png
 
 (require racket/class racket/gui/base)
-(require "4guodef.rkt")
+(require "4go-def.rkt" "4go-labor.rkt")
 
 ; ===================================================================
 (define dc null)
@@ -74,7 +74,6 @@
   )    
 )      
 
-;
   
 ; ====================================================================
 ; assignments
@@ -84,7 +83,7 @@
   (define forb #f)
   (if (and (= chess 10) (not (is-base country row col))) 
       (set! forb #t) null)
-  (if (and (is-base country row col) (not (member chess (list 10 100 33 34))))
+  (if (and (is-base country row col) (not (member chess (list 10 100 33))))
       (set! forb #t) null)
   (if (and (= chess 100) (not (>= row 4)))
       (set! forb #t) null)
@@ -137,96 +136,6 @@
 
 ; ====================================================
 
-(define (neighbours-on-rail country row col) ; successful, do not touch it
-    (define they null)
-    (define neighbours 
-         (list (list country (add1 row) col)
-               (list country (sub1 row) col)
-               (list country row (add1 col))
-               (list country row (sub1 col))
-         ))  
-    (if (and (not-middle country) (= row 0) (= col 0))
-       (set! neighbours (cons (list (left-country country) 0 4) neighbours))
-       null
-     )  
-    (if (and (not-middle country) (= row 0) (= col 4))
-       (set! neighbours (cons (list (right-country country) 0 0) neighbours))
-       null
-     )
-  (if (and (not-middle country) (= row 0) (even? col))
-      (set! neighbours (cons
-           (cond [(eq? country down) (list middle 2 (/ col 2))]
-                    [(eq? country up) (list middle 0 (- 2 (/ col 2)))]
-                    [(eq? country left) (list middle (/ col 2) 0)]
-                    [(eq? country right) (list middle (- 2 (/ col 2)) 2)]
-                    ) neighbours))
-      null
-     )
-     (if (eq? country middle)
-        (for* ([country2 (list down up left right)]
-               [col2 (list 0 2 4)])
-          (if (member (list country row col) (neighbours-on-rail country2 0 col2))
-             (set! neighbours (cons (list country2 0 col2) neighbours))             
-              null
-          ))
-        null
-     )        
-    (if (not (on-rail country row col)) null
-       (set! they (filter (lambda (x) (and (apply on-rail x) (apply valid? x)))
-                              neighbours))
-    )
-   they
-)  
-        
-  
-  
-(define (labor-fly country row col country2 row2 col2) ; successful, do not touch it
-; if the chess is a "labor", on the rail assumed
-; a very hard to code module, requires lots of endeavor
-  
-  (define (search-next-step fly-route-list)
-    
-    (define chosen (list (list country row col)))
-    (define new-route null)
-    (define new-list null)
-    (define final-pos null)
-    (define quit #f)  
-    
-    (for* ([route fly-route-list])
-     #:break quit
-        (set! final-pos (last route))
-
-        (if (equal? final-pos (list country2 row2 col2))
-           (begin
-               (set! chosen route)
-               (set! quit #t)
-           )
-           ; else
-           (for* ([next-pos (apply neighbours-on-rail final-pos)])
-               (set! new-route (append route (list next-pos)))
-            ; else if
-              (if (or (and (apply occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
-                       (member next-pos route)) ; have to ensure the route does not pass the same place twice
-               null
-               (set! new-list (append new-list (list new-route)))
-           )))
-     )
-    
-  (if quit
-       chosen 
-       (if (null? new-list) (list (list country row col)) 
-          (search-next-step new-list)
-          )
-  ))
-  
-  (if (and (on-rail country row col) (on-rail country2 row2 col2)) ; to check if on the rail
-       (search-next-step (list (list (list country row col))))
-       null
-   )    
-) 
-
-; ====================================================
-
 (define (route-list country row col is-labor? country2 row2 col2) ; chess = 30 to check if it is labor
   ; move from one position to another position, according to current states of the board
   ; if somewhere is blocked, the move is not allowed, returns original position of length 1
@@ -245,7 +154,7 @@
   (if (and (on-rail country row col) (on-rail country2 row2 col2))
      (set! result
      (if is-labor?
-              (labor-fly country row col country2 row2 col2)        
+              (labor-fly occupied? country row col country2 row2 col2)        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
                        [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
