@@ -3,7 +3,7 @@
 ; Be sure to run drawboard.rkt first to generate chessboard.png
 
 (require racket/class racket/gui/base)
-(require "4go-def.rkt" "4go-route.rkt")
+(require "4go-def.rkt" "4go-route.rkt" "4go-utils.rkt")
 
 ; ===================================================================
 (define dc null)
@@ -126,30 +126,6 @@
 
 ; ====================================================
 
-(define (with-in x y xy ab) ; detect if point (x, y) lies within the rectangle defined by top left xy and size ab
-  (let* ([x0 (first xy)] [y0 (second xy)]
-           [a (first ab)] [b (second ab)]
-           [ratio-x (/ (- x x0) a)] [ratio-y (/ (- y y0) b)])
-    (and (>= ratio-x 0) (<= ratio-x 1)
-           (>= ratio-y 0) (<= ratio-y 1))))
-
-(define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
-  (let ([result null]
-         [quit #f] )
-     (for* ([country (list up left down right middle)]
-              [row (range (row-num country))]
-              [col (range (col-num country))])
-       #:break quit
-     (let ([xy (get-top-left-corner country row col)]
-            [ab (get-size-xy country)])
-       (if (with-in x y  xy ab)
-          (begin (set! result (find-chess country row col)) (set! quit #t))          
-          null
-          )))
-    result
-    ))
-
-; ====================================================
 
 (define chess-picked-up #f)
 (define chess-from null) 
@@ -228,7 +204,7 @@
               [define/override (on-event event) ; mouse event
                  (set! dc (send my-canvas get-dc))
                  (if (send event button-down? 'any) ; if the mouse is pressed
-                     (click-chess (search-xy (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
+                     (click-chess (search-xy find-chess (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
                   null) 
                ]             
   )))
