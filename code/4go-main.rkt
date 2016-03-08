@@ -174,7 +174,8 @@
                                (if (= t-chess 10)
                                    (delete-side t-belong-to); delete everything!
                                    null
-                               ))    
+                               )
+                           )    
                            null)      
                        (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to) null)
                        (delete-occupied c-country c-row c-col) 
