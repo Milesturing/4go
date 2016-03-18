@@ -10,8 +10,6 @@
 (define target (make-bitmap frame-size frame-size))
 (send target load-file "chessboard.png" 'png)
 
-(define human-side down)
-
 ; ===================================================================
 
 (define (draw-all-chesses lst)
@@ -39,22 +37,25 @@
 
 (define occupied-list null) ; empty list
 
-(define (sub-list? list1 list2) ; the length of list2 must be greater than that of list1
+(define (is-prefix? list1 list2) ; the length of list2 must be greater than that of list1
    (if (null? list1) #t
-        (if (eq? (car list1) (car list2)) (sub-list? (cdr list1) (cdr list2)) #f)
+        (if (eq? (car list1) (car list2)) (is-prefix? (cdr list1) (cdr list2)) #f)
   ))
-                        
+; in Racket 6.3 the function is-prefix? is named as list-prefix?
+
 (define (occupy country row col chess belong-to)
    (set! occupied-list (cons (list country row col chess belong-to) occupied-list))   
 )
 
 (define (delete-occupied country row col)
   (set! occupied-list 
-       (remove (list country row col) occupied-list sub-list?)))
+       (remove (list country row col) occupied-list is-prefix?)))
 
 (define (find-chess country row col) ; find the chess based on the coordinates
-    (let ([item (filter (lambda (lst) (sub-list? (list country row col) lst)) occupied-list)])
-        (if (null? item) (list country row col null null) (car item)  )))
+  (define item (filter (lambda (lst) (is-prefix? (list country row col) lst)) occupied-list))
+  
+  (if (null? item) (list country row col null null) (car item)  )
+)
 
 (define (occupied? country row col) 
       (not (null? (fourth (find-chess country row col)))))
@@ -91,6 +92,10 @@
       (set! forb #t) null)
   (if (and (= chess 0) (= row 0))
       (set! forb #t) null)
+  (if (and (= chess 100)  (= row 4) (even? col)
+           (member (fourth (find-chess country 5 col)) (list 40 39 38)))
+      (set! forb #t) null)
+           
       
   forb
 )
