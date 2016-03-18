@@ -27,16 +27,16 @@
   ; in destination.
   (define result (list (list country row col)))
   ; 
-  (if* (and (eq? country country2)
+  (iff (and (eq? country country2)
              (or
                    (= (+ (abs (- row2 row)) (abs (- col2 col))) 1); case 1
                    (and (or (is-camp country row col) (is-camp country2 row2 col2)) (= (abs (- row2 row)) 1) (= (abs (- col2 col)) 1)) ; case 2
               )) ; one step cases
      (set! result (list (list country row col)  (list country2 row2 col2)) )
      )
-  (if* (and (on-rail country row col) (on-rail country2 row2 col2))
+  (iff (and (on-rail country row col) (on-rail country2 row2 col2))
      (set! result
-     (if* is-labor?
+     (iff is-labor?
               (labor-fly occupied? country row col country2 row2 col2)        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
@@ -62,8 +62,8 @@
      ))
      )
   ; if blocked, set it to one position
-  (if* (> (length result) 2)
-      (if*  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
+  (iff (> (length result) 2)
+      (iff  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
           (set! result null) 
       )
    )    

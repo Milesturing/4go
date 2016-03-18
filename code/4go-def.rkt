@@ -2,20 +2,21 @@
 
 (require racket/class racket/gui/base)
 
-(provide if* up left down right middle lsize rsize frame-size
-        blue-pen red-pen white-pen blue-dashed-pen 
-        my-font get-top-left-corner get-size-xy valid?
-        left-country right-country row-num col-num
-        coordinatex is-camp is-base not-middle on-rail
-        chess-code beat-it ally? chess-color draw-chess 
-        whole-chess-set
+(provide iff
+         up left down right middle lsize rsize frame-size
+         blue-pen red-pen white-pen blue-dashed-pen 
+         my-font get-top-left-corner get-size-xy valid?
+         left-country right-country row-num col-num
+         coordinatex is-camp is-base not-middle on-rail
+         chess-code beat-it ally? chess-color draw-chess 
+         whole-chess-set
 )
  
 ; =================================
 ; syntax sugar
-; (if* a b) is equal to (if a b null)
+; (iff a b) is equal to (if a b null)
 
-(define-syntax if*
+(define-syntax iff
   (syntax-rules ()
     [(_ cond then-do)
      (if cond then-do null)]
@@ -52,8 +53,8 @@
 
 (define frame-size (+ margin0 margin1 margin2 margin2 arena-height arena-height arena-width))
 
-(define (row-num country) (if* (eq? country middle) 3 6)) ; how many rows in total
-(define (col-num country) (if* (eq? country middle) 3 5))  ; how many cols in total
+(define (row-num country) (if (eq? country middle) 3 6)) ; how many rows in total
+(define (col-num country) (if (eq? country middle) 3 5))  ; how many cols in total
 
 ; ===================================================================
 ; draw the board
@@ -78,7 +79,7 @@
     (map - (middle-point country) (posv * (new-x country) (first half-arena)) (posv * (new-y country) (second half-arena))))
   
 (define (coordinatex row col x y country) ; x and y are offset -- calculating the coordinates
-    (if* (and (eq? country middle)  (< row (row-num country)) (< col (col-num country))) ; conditions
+    (if (and (eq? country middle)  (< row (row-num country)) (< col (col-num country))) ; conditions
        
        (list (first (coordinatex 0 (+ col col) x 0 down)) (+ (second (coordinatex 0 (+ row row) y 0 left)) (* 1/4 rsize)) ) ; coordinates in the middle
     ; else
@@ -164,8 +165,8 @@
 )     
 
 (define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
-  (if* (= (* num1 num2) 0) 0 ; if either is bomb then equal
-     (if* (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
+  (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
+     (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
 (define (chess-color belong-to-country) ; chooses different colors for different belonging-to-countries
