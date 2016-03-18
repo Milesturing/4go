@@ -25,9 +25,8 @@
        #:break quit
      (let ([xy (get-top-left-corner country row col)]
             [ab (get-size-xy country)])
-       (if (with-in x y  xy ab)
+       (if* (with-in x y  xy ab)
           (begin (set! result (find-chess country row col)) (set! quit #t))          
-          null
           )))
     result
     ))

@@ -29,7 +29,7 @@
               [radius2 (/ (second ab) 2)])
        (begin
         (send dc set-pen blue-pen)
-         (if (is-camp country i j) ; draw circle
+         (if* (is-camp country i j) ; draw circle
             (begin
                (send dc set-pen white-pen)
                (send dc set-brush "white" 'solid)
@@ -37,7 +37,7 @@
                (send dc set-pen blue-pen)
                (for* ([ii '(-1 1)]
                         [jj '(-1 1)]) ; draw diagonal line
-                 (if (and (= i 2) (= j 2)) null  (if (and (= (+ i ii) 2) (= (+ j jj) 2)) 
+                 (if* (not (and (= i 2) (= j 2))) (if* (and (= (+ i ii) 2) (= (+ j jj) 2)) 
                   (let ([xynew (coordinatex (+ i ii) (+ j jj) (- 1/2 (* jj 1/2 0.8)) (- 1/2 (* ii 1/2 0.8)) country)])
                    (send dc draw-line (first xy0) (second xy0) (first xynew) (second xynew)))                 
                   (let ([xynew (coordinatex (+ i ii) (+ j jj) (- 1/2 (* jj 1/2)) (- 1/2 (* ii 1/2)) country)])
@@ -49,13 +49,13 @@
              )
             ; else
             (begin
-             (if (is-base country i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
+             (if* (is-base country i j) (send dc set-pen red-pen) (send dc set-pen blue-pen))        
              (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) ) ; draw rectangle
              (send dc set-pen blue-pen)
              )
          )
-         (if (< j 4) (send dc draw-line (first xy2) (second xy2) (first xyn) (second xyn)) null)
-         (if (< i 5) (send dc draw-line (first xy3) (second xy3) (first xyd) (second xyd)) null)
+         (if* (< j 4) (send dc draw-line (first xy2) (second xy2) (first xyn) (second xyn)))
+         (if* (< i 5) (send dc draw-line (first xy3) (second xy3) (first xyd) (second xyd)))
          )))
 
 ; ===================================================================
