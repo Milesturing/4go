@@ -13,7 +13,7 @@
 ; ===================================================================
 
 (define (draw-all-chesses lst)
-  (if (not (null? lst))
+  (unless (null? lst)
     (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
       (draw-chess dc country row col chess (chess-color belong-to) 'solid)      
       (draw-all-chesses (cdr lst))
@@ -137,20 +137,18 @@
 
 (define (click-chess the-chess)
     
-   (if (not (null? the-chess))  
-       (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
+   (unless (null? the-chess)  
+     (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
                               
-       (if (not chess-picked-up)
+     (if (not chess-picked-up)
        ; chess-not-picked-up
-       (if (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
+       (when (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
                    (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
-        (begin
-                   (set! chess-picked-up #t)
-                   (set! chess-from the-chess)
-                   (draw-chess dc  t-country t-row t-col t-chess (chess-color 0) 'solid)
-         )                                 
-         ) 
-         
+             (set! chess-picked-up #t)
+             (set! chess-from the-chess)
+             (draw-chess dc t-country t-row t-col t-chess (chess-color 0) 'solid)
+        )                                 
+          
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
                            [(r-list) (route-list occupied? c-country c-row c-col (= c-chess 30) t-country t-row t-col)]) 
@@ -160,35 +158,30 @@
                      (set! chess-from null)
                      (re-draw)
               )
-           (if (not (occupied? t-country t-row t-col))                            
-             (begin
+              ; else
+              (if (not (occupied? t-country t-row t-col))                            
+                 (begin
                      (delete-occupied c-country c-row c-col) 
                      (occupy t-country t-row t-col c-chess c-belong-to)
                      (set! chess-picked-up #f)
                      (set! chess-from null)
                      (set! which-turn (next-country which-turn))
                      (re-draw)
-             )
-             ; else occupied
-                (if (not (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)))
-                   (let ([beat (beat-it c-chess t-chess)])
-                       (if (> beat -1) 
-                           (begin
-                               (delete-occupied t-country t-row t-col)
-                               (if (= t-chess 10)
-                                   (delete-side t-belong-to); delete everything!
-                               )
-                           )    
-                           )      
+                  )
+                  ; else occupied
+                  (unless (or (ally? c-belong-to t-belong-to) (is-camp t-country t-row t-col))
+                     (let ([beat (beat-it c-chess t-chess)])
+                       (when (> beat -1) 
+                             (delete-occupied t-country t-row t-col)
+                             (if (= t-chess 10) (delete-side t-belong-to) ); delete everything!
+                       )      
                        (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to))
                        (delete-occupied c-country c-row c-col) 
                        (set! chess-picked-up #f)
                        (set! chess-from null)
                        (set! which-turn (next-country which-turn))
                        (re-draw)
-              )))                                                   
-       ))))   
-  ))
+                   )))))))))
 
 
 ; ====================================================
