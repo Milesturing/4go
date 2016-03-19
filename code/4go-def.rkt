@@ -2,7 +2,7 @@
 
 (require racket/class racket/gui/base)
 
-(provide iff
+(provide if
          up left down right middle lsize rsize frame-size
          blue-pen red-pen white-pen blue-dashed-pen 
          my-font get-top-left-corner get-size-xy valid?
@@ -14,14 +14,15 @@
  
 ; =================================
 ; syntax sugar
-; (iff a b) is equal to (if a b null)
+; (if a b) is equal to (if a b null)
 
-(define-syntax iff
+(define-syntax if
   (syntax-rules ()
-    [(_ cond then-do)
-     (if cond then-do null)]
-    [(_ cond then-do else-do)
-     (if cond then-do else-do)]
+   [(_ condition then-clause)
+    (if condition then-clause null)]
+   [(_ condition then-clause else-clause)
+    (cond (condition then-clause)
+          ((not condition) else-clause))]
 ))
 
 ; =================================
@@ -169,7 +170,7 @@
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
-(define (chess-color belong-to-country) ; chooses different colors for different belonging-to-countries
+(define (chess-color belong-to-country) ; chooses diferent colors for different belonging-to-countries
   (match belong-to-country
     [(== down) "red"]
     [(== up)     "fuchsia"]

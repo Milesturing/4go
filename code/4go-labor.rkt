@@ -15,13 +15,13 @@
                (list country row (add1 col))
                (list country row (sub1 col))
          ))  
-    (iff (and (not-middle country) (= row 0) (= col 0))
+    (if (and (not-middle country) (= row 0) (= col 0))
        (set! neighbours (cons (list (left-country country) 0 4) neighbours))
      )  
-    (iff (and (not-middle country) (= row 0) (= col 4))
+    (if (and (not-middle country) (= row 0) (= col 4))
        (set! neighbours (cons (list (right-country country) 0 0) neighbours))
      )
-  (iff (and (not-middle country) (= row 0) (even? col))
+  (if (and (not-middle country) (= row 0) (even? col))
       (set! neighbours (cons
            (cond [(eq? country down) (list middle 2 (/ col 2))]
                     [(eq? country up) (list middle 0 (- 2 (/ col 2)))]
@@ -29,14 +29,14 @@
                     [(eq? country right) (list middle (- 2 (/ col 2)) 2)]
                     ) neighbours))
    )
-     (iff (eq? country middle)
+     (if (eq? country middle)
         (for* ([country2 (list down up left right)]
                [col2 (list 0 2 4)])
-          (iff (member (list country row col) (neighbours-on-rail country2 0 col2))
+          (if (member (list country row col) (neighbours-on-rail country2 0 col2))
              (set! neighbours (cons (list country2 0 col2) neighbours))             
           ))
      )        
-    (iff (not (on-rail country row col)) null
+    (if (not (on-rail country row col)) null
        (set! they (filter (lambda (x) (and (apply on-rail x) (apply valid? x)))
                               neighbours))
     )
@@ -46,7 +46,7 @@
 ;=================================================================================================  
   
 (define (labor-fly occupied? country row col country2 row2 col2) ; successful, do not touch it
-; iff the chess is a "labor", on the rail assumed
+; if the chess is a "labor", on the rail assumed
 ; a very hard to code module, requires lots of endeavor
   
   (define (search-next-step fly-route-list)
@@ -61,7 +61,7 @@
      #:break quit
         (set! final-pos (last route))
 
-        (iff (equal? final-pos (list country2 row2 col2))
+        (if (equal? final-pos (list country2 row2 col2))
            (begin
                (set! chosen route)
                (set! quit #t)
@@ -69,22 +69,22 @@
            ; else
            (for* ([next-pos (apply neighbours-on-rail final-pos)])
                (set! new-route (append route (list next-pos)))
-            ; else iff
-              (iff (or (and (apply occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
+            ; else if
+              (if (or (and (apply occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
                        (member next-pos route)) ; have to ensure the route does not pass the same place twice
                null
                (set! new-list (append new-list (list new-route)))
            )))
      )
     
-  (iff quit
+  (if quit
        chosen 
-       (iff (null? new-list) (list (list country row col)) 
+       (if (null? new-list) (list (list country row col)) 
           (search-next-step new-list)
           )
   ))
   
-  (iff (and (on-rail country row col) (on-rail country2 row2 col2)) ; to check iff on the rail
+  (if (and (on-rail country row col) (on-rail country2 row2 col2)) ; to check if on the rail
        (search-next-step (list (list (list country row col))))
    )    
 ) 

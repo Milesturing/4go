@@ -13,7 +13,7 @@
 ; ===================================================================
 
 (define (draw-all-chesses lst)
-  (iff (not (null? lst))
+  (if (not (null? lst))
     (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
       (draw-chess dc country row col chess (chess-color belong-to) 'solid)      
       (draw-all-chesses (cdr lst))
@@ -83,15 +83,15 @@
 (define (forbidden chess country row col)
   
   (define forb #f)
-  (iff (and (= chess 10) (not (is-base country row col))) 
+  (if (and (= chess 10) (not (is-base country row col))) 
       (set! forb #t))
-  (iff (and (is-base country row col) (not (member chess (list 10 100 33))))
+  (if (and (is-base country row col) (not (member chess (list 10 100 33))))
       (set! forb #t))
-  (iff (and (= chess 100) (not (>= row 4)))
+  (if (and (= chess 100) (not (>= row 4)))
       (set! forb #t))
-  (iff (and (= chess 0) (= row 0))
+  (if (and (= chess 0) (= row 0))
       (set! forb #t))
-  (iff (and (= chess 100)  (= row 4) (even? col)
+  (if (and (= chess 100)  (= row 4) (even? col)
            (member (fourth (find-chess country 5 col)) (list 40 39 38)))
       (set! forb #t))
            
@@ -137,12 +137,12 @@
 
 (define (click-chess the-chess)
     
-   (iff (not (null? the-chess))  
+   (if (not (null? the-chess))  
        (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
                               
-       (iff (not chess-picked-up)
+       (if (not chess-picked-up)
        ; chess-not-picked-up
-       (iff (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
+       (if (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
                    (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
         (begin
                    (set! chess-picked-up #t)
@@ -154,13 +154,13 @@
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
                            [(r-list) (route-list occupied? c-country c-row c-col (= c-chess 30) t-country t-row t-col)]) 
-          (iff (<= (length r-list) 1)
+          (if (<= (length r-list) 1)
              (begin
                      (set! chess-picked-up #f)
                      (set! chess-from null)
                      (re-draw)
               )
-           (iff (not (occupied? t-country t-row t-col))                            
+           (if (not (occupied? t-country t-row t-col))                            
              (begin
                      (delete-occupied c-country c-row c-col) 
                      (occupy t-country t-row t-col c-chess c-belong-to)
@@ -170,17 +170,17 @@
                      (re-draw)
              )
              ; else occupied
-                (iff (not (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)))
+                (if (not (or (ally? c-belong-to t-belong-to)  (is-camp t-country t-row t-col)))
                    (let ([beat (beat-it c-chess t-chess)])
-                       (iff (> beat -1) 
+                       (if (> beat -1) 
                            (begin
                                (delete-occupied t-country t-row t-col)
-                               (iff (= t-chess 10)
+                               (if (= t-chess 10)
                                    (delete-side t-belong-to); delete everything!
                                )
                            )    
                            )      
-                       (iff (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to))
+                       (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to))
                        (delete-occupied c-country c-row c-col) 
                        (set! chess-picked-up #f)
                        (set! chess-from null)
@@ -207,7 +207,7 @@
               ]
               [define/override (on-event event) ; mouse event
                  (set! dc (send my-canvas get-dc))
-                 (iff (send event button-down? 'any) ; iff the mouse is pressed
+                 (if (send event button-down? 'any) ; if the mouse is pressed
                      (click-chess (search-xy find-chess (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
                   ) 
                ]             
