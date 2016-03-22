@@ -1,6 +1,6 @@
 #lang racket
 ; four-country battle game
-
+ 
 (require racket/class racket/gui/base)
 (require "4go-def.rkt")
 

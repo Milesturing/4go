@@ -46,7 +46,7 @@
    (add occupied-list (list country row col chess belong-to))   
 )
 
-(define (extract a-list) ; very well written!
+(define (extract a-list) ; very well written! 
   
   (define (same-except-#f lst)
     (andmap (lambda (e1 e2)

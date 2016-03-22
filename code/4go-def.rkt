@@ -15,7 +15,7 @@
 ; =================================
 ; syntax sugar
 ; (if a b) is equal to (if a b null)
-
+  
 (define-syntax if
   (syntax-rules ()
    [(_ condition then-clause)
