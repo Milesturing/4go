@@ -2,7 +2,7 @@
 
 (require racket/class racket/gui/base)
 
-(provide if
+(provide if add
          up left down right middle lsize rsize frame-size
          blue-pen red-pen white-pen blue-dashed-pen 
          my-font get-top-left-corner get-size-xy valid?
@@ -23,8 +23,14 @@
    [(_ condition then-clause else-clause)
     (cond (condition then-clause)
           ((not condition) else-clause))]
-))
+    ))
 
+; add an element to an existing list
+(define-syntax add
+  (syntax-rules ()
+    [(_ lst element)
+     (set! lst (cons element lst))]
+    ))
 ; =================================
 ;
 ; an operator on list and constant
@@ -120,13 +126,8 @@
      ))
 
 (define (left-country country)
-   (match country
-     [(== down) left]
-     [(== right) down]
-     [(== up) right]
-     [(== left) up] 
-     [else null]
-     ))
+   (right-country (right-country (right-country country)))
+)
 
 (define (not-middle country)
   (not (eq? country middle))

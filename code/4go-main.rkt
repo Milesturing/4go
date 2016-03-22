@@ -6,24 +6,24 @@
 (require "4go-def.rkt" "4go-route.rkt" "4go-utils.rkt")
 
 ; ===================================================================
-(define dc null)
+; global variables
+(define dc null) ; drawing context
+
 (define target (make-bitmap frame-size frame-size))
 (send target load-file "chessboard.png" 'png)
 
 ; ===================================================================
 
-(define (draw-all-chesses lst)
-  (unless (null? lst)
-    (let*-values ([(country row col chess belong-to) (apply values (car lst))])      
+(define (draw-all-chesses)
+  (for ([item occupied-list])
+    (let*-values ([(country row col chess belong-to) (apply values item)])      
       (draw-chess dc country row col chess (chess-color belong-to) 'solid)      
-      (draw-all-chesses (cdr lst))
     )))
-
 
 (define (re-draw)
      (send dc clear)
      (send dc draw-bitmap target 0 0)
-     (draw-all-chesses occupied-list)
+     (draw-all-chesses)
      
      (for* ([country (list down up left right)]) ; draw some extra flag
 
@@ -34,7 +34,7 @@
 
 ; ===================================================================
 
-(define occupied-list null) ; empty list
+(define occupied-list null) ; occupied-list is a list of (country row col chess belong-to)
 
 (define (is-prefix? list1 list2) ; the length of list2 must be greater than that of list1
    (if (null? list1) #t
@@ -43,16 +43,30 @@
 ; in Racket 6.3 the function is-prefix? is named as list-prefix?
 
 (define (occupy country row col chess belong-to)
-   (set! occupied-list (cons (list country row col chess belong-to) occupied-list))   
+   (add occupied-list (list country row col chess belong-to))   
 )
 
+(define (extract a-list) ; very well written!
+  
+  (define (same-except-#f lst)
+    (andmap (lambda (e1 e2)
+              (or (eq? e1 #f) (eq? e1 e2)))
+            a-list
+            lst
+            ))    
+       
+  (filter same-except-#f occupied-list)
+)    
+  
+         
 (define (delete-occupied country row col)
   (set! occupied-list 
        (remove (list country row col) occupied-list is-prefix?)))
 
 (define (find-chess country row col) ; find the chess based on the coordinates
-  (define item (filter (lambda (lst) (is-prefix? (list country row col) lst)) occupied-list))
   
+  (define item (extract (list country row col #f #f)))
+
   (if (null? item) (list country row col null null) (car item)  )
 )
 
@@ -130,7 +144,13 @@
 
 ; ====================================================
 
+(define (check-die? belong-to)
 
+  #f
+  
+)
+  
+; ====================================================
 (define chess-picked-up #f)
 (define chess-from null) 
 (define which-turn down)
@@ -151,7 +171,7 @@
           
         ; chess-picked-up
         (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
-                           [(r-list) (route-list occupied? c-country c-row c-col (= c-chess 30) t-country t-row t-col)]) 
+                           [(r-list) (route-list occupied? c-country c-row c-col c-chess t-country t-row t-col)]) 
           (if (<= (length r-list) 1)
              (begin
                      (set! chess-picked-up #f)
@@ -180,6 +200,7 @@
                        (set! chess-picked-up #f)
                        (set! chess-from null)
                        (set! which-turn (next-country which-turn))
+                       (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
                    )))))))))
 
