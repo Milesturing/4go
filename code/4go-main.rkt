@@ -133,7 +133,15 @@
          )
   )   
 )
- 
+
+; ====================================================
+
+(define (check-die? belong-to)
+
+  #f
+  
+)
+  
 ; ====================================================
 (define chess-picked-up #f)
 (define chess-from null) 
@@ -195,6 +203,7 @@
                        (set! chess-picked-up #f)
                        (set! chess-from null)
                        (set! which-turn (next-country which-turn))
+                       (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
                    )))))))))
 
