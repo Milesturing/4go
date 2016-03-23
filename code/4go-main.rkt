@@ -36,12 +36,6 @@
 
 (define occupied-list null) ; occupied-list is a list of (country row col chess belong-to)
 
-(define (is-prefix? list1 list2) ; the length of list2 must be greater than that of list1
-   (if (null? list1) #t
-        (if (eq? (car list1) (car list2)) (is-prefix? (cdr list1) (cdr list2)) #f)
-  ))
-; in Racket 6.3 the function is-prefix? is named as list-prefix?
-
 (define (occupy country row col chess belong-to)
    (add occupied-list (list country row col chess belong-to))   
 )
@@ -56,7 +50,6 @@
             ))    
 
 )    
-  
          
 (define (delete-occupied country row col)
   (set! occupied-list
@@ -140,15 +133,7 @@
          )
   )   
 )
-
-; ====================================================
-
-(define (check-die? belong-to)
-
-  #f
-  
-)
-  
+ 
 ; ====================================================
 (define chess-picked-up #f)
 (define chess-from null) 
@@ -158,7 +143,7 @@
 
    (define the-chess #f)
 
-   (when (not (null? my-chess))
+   (unless (null? my-chess)
        (set! the-chess
          (findf (same? (append my-chess (list #f #f))) occupied-list) 
        )
@@ -210,7 +195,6 @@
                        (set! chess-picked-up #f)
                        (set! chess-from null)
                        (set! which-turn (next-country which-turn))
-                       (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
                    )))))))))
 
