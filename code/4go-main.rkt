@@ -46,42 +46,41 @@
    (add occupied-list (list country row col chess belong-to))   
 )
 
-(define (extract a-list) ; very well written! 
-  
-  (define (same-except-#f lst)
+(define (same? country-row-col-else) ; judge if an element in occupied-list is
+                                ; the same as country-row-col except #f  
+  (lambda (lst)
     (andmap (lambda (e1 e2)
               (or (eq? e1 #f) (eq? e1 e2)))
-            a-list
+            country-row-col-else
             lst
             ))    
-       
-  (filter same-except-#f occupied-list)
+
 )    
   
          
 (define (delete-occupied country row col)
-  (set! occupied-list 
-       (remove (list country row col) occupied-list is-prefix?)))
+  (set! occupied-list
+        (filter-not (same? (list country row col #f #f)) occupied-list)
+  ))
 
 (define (find-chess country row col) ; find the chess based on the coordinates
   
-  (define item (extract (list country row col #f #f)))
+  (define item (filter (same? (list country row col #f #f))
+                       occupied-list)
+    )
 
   (if (null? item) (list country row col null null) (car item)  )
 )
 
 (define (occupied? country row col) 
-      (not (null? (fourth (find-chess country row col)))))
-
+      (not (null? (filter (same? (list country row col #f #f)) occupied-list))))
+            
 (define (delete-side belong-to) ; delete everything of a country
-  (set! occupied-list 
-        (remove* (list belong-to) occupied-list
-                 (lambda (item lst) (eq? item (last lst)))
-                 )))
-
+  (set! occupied-list
+        (filter-not (same? (list #f #f #f #f belong-to)) occupied-list)))
+        
 (define (empty? belong-to)
-  (not (member belong-to (map last occupied-list)))
-)
+  (null? (filter (same? (list #f #f #f #f belong-to)) occupied-list)))
   
 (define (next-country country)
   (if (empty? (right-country country))
@@ -155,9 +154,20 @@
 (define chess-from null) 
 (define which-turn down)
 
-(define (click-chess the-chess)
-    
-   (unless (null? the-chess)  
+(define (click-chess my-chess)
+
+   (define the-chess #f)
+
+   (when (not (null? my-chess))
+       (set! the-chess
+         (findf (same? (append my-chess (list #f #f))) occupied-list) 
+       )
+       (if (not the-chess)
+           (set! the-chess (append my-chess (list null null)))
+       )
+   )
+
+   (if the-chess  
      (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
                               
      (if (not chess-picked-up)
@@ -222,7 +232,7 @@
               [define/override (on-event event) ; mouse event
                  (set! dc (send my-canvas get-dc))
                  (if (send event button-down? 'any) ; if the mouse is pressed
-                     (click-chess (search-xy find-chess (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
+                     (click-chess (search-xy (send event get-x) (send event get-y))) ; derive the chess from the mouse's x, y
                   ) 
                ]             
   )))

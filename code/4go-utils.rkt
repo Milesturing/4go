@@ -3,7 +3,7 @@
 ; utilities
 
 (require "4go-def.rkt")  
-(provide search-xy) ; (search-xy find-chess x y)
+(provide search-xy) ; (search-xy x y) returns (list country row col) or null
 
 ;==================================================================================================
 
@@ -16,7 +16,7 @@
 
 ;==================================================================================================
 
-(define (search-xy find-chess x y) ; search the parameters of chess according to its coordinates (x, y)
+(define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
   (let ([result null]
          [quit #f] )
      (for* ([country (list up left down right middle)]
@@ -26,7 +26,7 @@
      (let ([xy (get-top-left-corner country row col)]
             [ab (get-size-xy country)])
        (if (with-in x y  xy ab)
-          (begin (set! result (find-chess country row col)) (set! quit #t))          
+          (begin (set! result (list country row col)) (set! quit #t))          
           )))
     result
     ))

@@ -39,7 +39,7 @@
 
 ; constant values
 ; =================================
-(define-values (up left down right middle) (values '(0 -1) '(-1 0) '(0 1) '(1 0) '(0 0) )) ; country
+(define-values (up left down right middle) (values 'up 'left 'down 'right 'middle)) ; country
 
 (define lsize 20) ; mutable data 
 (define rsize (* lsize 2) )
@@ -74,12 +74,21 @@
 
 ; ===================================================================
 
+(define (country-orientation country)
+  (match country
+    [(== down)  '(0 1)]
+    [(== up)    '(0 -1)]
+    [(== left)  '(-1 0)]
+    [(== right) '(1 0)]
+    [(== middle)'(0 0)]
+    ))
+
 ; middle point for each country
-(define (middle-point country) (posv +  (posv * country (+ (/ arena-height 2) (/ arena-width 2) margin2)) arena-height (/ arena-width 2) margin2 margin0))
+(define (middle-point country) (posv +  (posv * (country-orientation country) (+ (/ arena-height 2) (/ arena-width 2) margin2)) arena-height (/ arena-width 2) margin2 margin0))
   
 ; new axis for each country 
-(define (new-x country) (list (second country) (- (first country))))
-(define (new-y country) country)  
+(define (new-x country) (list (second (country-orientation country)) (- (first (country-orientation country)))))
+(define (new-y country) (country-orientation country))  
 
 ; starting point for each country  
 (define (starting-point country)
