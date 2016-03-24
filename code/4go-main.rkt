@@ -16,9 +16,11 @@
 
 (define (draw-all-chesses)
   (for ([item occupied-list])
-    (let*-values ([(country row col chess belong-to) (apply values item)])      
-      (draw-chess dc country row col chess (chess-color belong-to) 'solid)      
-    )))
+    
+      (get-from (country row col chess belong-to) item)    
+      (draw-chess dc country row col chess (chess-color belong-to) 'solid)
+      
+    ))
 
 (define (re-draw)
      (send dc clear)
@@ -128,10 +130,10 @@
   (for* ([belong-to (list up down left right)]
          [chess whole-chess-set])
       
-         (let*-values ([(country row col) (apply values (assign-country-row-col belong-to chess))])
-            (occupy country row col chess belong-to)
-         )
-  )   
+         (get-from (country row col) (assign-country-row-col belong-to chess))
+    
+         (occupy country row col chess belong-to)
+   )   
 )
 
 ; ====================================================
@@ -160,8 +162,9 @@
        )
    )
 
-   (if the-chess  
-     (let-values ([(t-country t-row t-col t-chess t-belong-to) (apply values the-chess)])
+   (when the-chess
+     
+     (get-from (t-country t-row t-col t-chess t-belong-to) the-chess)
                               
      (if (not chess-picked-up)
        ; chess-not-picked-up
@@ -173,8 +176,10 @@
         )                                 
           
         ; chess-picked-up
-        (let*-values ([(c-country c-row c-col c-chess c-belong-to) (apply values chess-from)]
-                           [(r-list) (route-list occupied? c-country c-row c-col c-chess t-country t-row t-col)]) 
+        (begin
+          (get-from (c-country c-row c-col c-chess c-belong-to) chess-from)
+          (get-from (r-list) (list (route-list occupied? c-country c-row c-col c-chess t-country t-row t-col)))
+          
           (if (<= (length r-list) 1)
              (begin
                      (set! chess-picked-up #f)
@@ -205,7 +210,7 @@
                        (set! which-turn (next-country which-turn))
                        (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
-                   )))))))))
+                   ))))))))
 
 
 ; ====================================================

@@ -2,7 +2,7 @@
 
 (require racket/class racket/gui/base)
 
-(provide if add
+(provide if add get-from
          up left down right middle lsize rsize frame-size
          blue-pen red-pen white-pen blue-dashed-pen 
          my-font get-top-left-corner get-size-xy valid?
@@ -31,6 +31,16 @@
     [(_ lst element)
      (set! lst (cons element lst))]
     ))
+
+; extract variables values from a list
+(define-syntax get-from
+  (syntax-rules ()
+    [(_ vars lst)
+     (define-values vars (apply values
+                                (take lst (length (quote vars)))) 
+     )]
+   ))
+
 ; =================================
 ;
 ; an operator on list and constant
