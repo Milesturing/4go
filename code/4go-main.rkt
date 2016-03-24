@@ -58,11 +58,11 @@
 
 (define (find-chess country row col) ; find the chess based on the coordinates
   
-  (define item (filter (same? (list country row col #f #f))
-                       occupied-list)
-    )
+  (define item (findf
+                 (same? (list country row col #f #f))
+                 occupied-list))
 
-  (if (null? item) (list country row col null null) (car item)  )
+  (if item (fourth item) #f)
 )
 
 (define (occupied? country row col) 
@@ -98,7 +98,7 @@
   (if (and (= chess 0) (= row 0))
       (set! forb #t))
   (if (and (= chess 100)  (= row 4) (even? col)
-           (member (fourth (find-chess country 5 col)) (list 40 39 38)))
+           (member (find-chess country 5 col) (list 40 39 38)))
       (set! forb #t))
            
       
