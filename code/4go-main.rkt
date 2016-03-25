@@ -145,68 +145,63 @@
 )
   
 ; ====================================================
-(define chess-picked-up #f)
-(define chess-from null) 
+(define chess-picked-up null) 
 (define which-turn down)
 
-(define (click-chess my-chess)
+(define (click-chess country-row-col)
 
-   (define the-chess #f)
+   (define cur-chess #f)
 
-   (unless (null? my-chess)
-       (set! the-chess
-         (findf (same? (append my-chess (list #f #f))) occupied-list) 
+   (unless (null? country-row-col)
+       (set! cur-chess
+         (findf (same? (append country-row-col (list #f #f))) occupied-list) 
        )
-       (if (not the-chess)
-           (set! the-chess (append my-chess (list null null)))
+       (if (not cur-chess)
+           (set! cur-chess (append country-row-col (list null null)))
        )
    )
 
-   (when the-chess
+   (when cur-chess
      
-     (get-from (t-country t-row t-col t-chess t-belong-to) the-chess)
+     (get-from (cur-country cur-row cur-col chess belong-to) cur-chess)
                               
-     (if (not chess-picked-up)
+     (if (null? chess-picked-up)
        ; chess-not-picked-up
-       (when (and (occupied? t-country t-row t-col) (eq? t-belong-to which-turn)
-                   (not (or (is-base t-country t-row t-col) (= t-chess 100)) ))
-             (set! chess-picked-up #t)
-             (set! chess-from the-chess)
-             (draw-chess dc t-country t-row t-col t-chess (chess-color 0) 'solid)
+       (when (and (occupied? cur-country cur-row cur-col) (eq? belong-to which-turn)
+                   (not (or (is-base cur-country cur-row cur-col) (= chess 100)) ))
+             (set! chess-picked-up cur-chess)
+             (draw-chess dc cur-country cur-row cur-col chess (chess-color 0) 'solid)
         )                                 
           
         ; chess-picked-up
         (begin
-          (get-from (c-country c-row c-col c-chess c-belong-to) chess-from)
-          (get-from (r-list) (list (route-list occupied? c-country c-row c-col c-chess t-country t-row t-col)))
+          (get-from (from-country from-row from-col from-chess from-belong-to) chess-picked-up)
+          (get-from (r-list) (list (route-list occupied? from-country from-row from-col from-chess cur-country cur-row cur-col)))
           
           (if (<= (length r-list) 1)
              (begin
-                     (set! chess-picked-up #f)
-                     (set! chess-from null)
+                     (set! chess-picked-up null)
                      (re-draw)
               )
               ; else
-              (if (not (occupied? t-country t-row t-col))                            
+              (if (not (occupied? cur-country cur-row cur-col))                            
                  (begin
-                     (delete-occupied c-country c-row c-col) 
-                     (occupy t-country t-row t-col c-chess c-belong-to)
-                     (set! chess-picked-up #f)
-                     (set! chess-from null)
+                     (delete-occupied from-country from-row from-col) 
+                     (occupy cur-country cur-row cur-col from-chess from-belong-to)
+                     (set! chess-picked-up null)
                      (set! which-turn (next-country which-turn))
                      (re-draw)
                   )
                   ; else occupied
-                  (unless (or (ally? c-belong-to t-belong-to) (is-camp t-country t-row t-col))
-                     (let ([beat (beat-it c-chess t-chess)])
+                  (unless (or (ally? from-belong-to belong-to) (is-camp cur-country cur-row cur-col))
+                     (let ([beat (beat-it from-chess chess)])
                        (when (> beat -1) 
-                             (delete-occupied t-country t-row t-col)
-                             (if (= t-chess 10) (delete-side t-belong-to) ); delete everything!
+                             (delete-occupied cur-country cur-row cur-col)
+                             (if (= chess 10) (delete-side belong-to) ); delete everything!
                        )      
-                       (if (> beat 0) (occupy t-country t-row t-col c-chess c-belong-to))
-                       (delete-occupied c-country c-row c-col) 
-                       (set! chess-picked-up #f)
-                       (set! chess-from null)
+                       (if (> beat 0) (occupy cur-country cur-row cur-col from-chess from-belong-to))
+                       (delete-occupied from-country from-row from-col) 
+                       (set! chess-picked-up null)
                        (set! which-turn (next-country which-turn))
                        (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
