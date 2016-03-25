@@ -156,18 +156,18 @@
        (set! cur-chess
          (findf (same? (append country-row-col (list #f #f))) occupied-list) 
        )
-       (if (not cur-chess)
+       (when (not cur-chess)
            (set! cur-chess (append country-row-col (list null null)))
        )
    )
 
    (when cur-chess
      
-     (get-from (cur-country cur-row cur-col cur-rank belong-to) cur-chess)
+     (get-from (cur-country cur-row cur-col cur-rank cur-belong-to) cur-chess)
                               
      (if (null? chess-picked-up)
        ; chess-not-picked-up
-       (when (and (occupied? cur-country cur-row cur-col) (eq? belong-to which-turn)
+       (when (and (occupied? cur-country cur-row cur-col) (eq? cur-belong-to which-turn)
                    (not (or (is-base cur-country cur-row cur-col) (= cur-rank 100)) ))
              (set! chess-picked-up cur-chess)
              (draw-chess dc cur-country cur-row cur-col cur-rank (chess-color 0) 'solid)
@@ -193,11 +193,11 @@
                      (re-draw)
                   )
                   ; else occupied
-                  (unless (or (ally? from-belong-to belong-to) (is-camp cur-country cur-row cur-col))
+                  (unless (or (ally? from-belong-to cur-belong-to) (is-camp cur-country cur-row cur-col))
                      (let ([beat (beat-it from-rank cur-rank)])
                        (when (> beat -1) 
                              (delete-occupied cur-country cur-row cur-col)
-                             (if (= cur-rank 10) (delete-side belong-to) ); delete everything!
+                             (if (= cur-rank 10) (delete-side cur-belong-to) ); delete everything!
                        )      
                        (if (> beat 0) (occupy cur-country cur-row cur-col from-rank from-belong-to))
                        (delete-occupied from-country from-row from-col) 
