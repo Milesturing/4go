@@ -17,8 +17,8 @@
 (define (draw-all-chesses)
   (for ([item occupied-list])
     
-      (get-from (country row col chess belong-to) item)    
-      (draw-chess dc country row col chess (chess-color belong-to) 'solid)
+      (get-from (country row col rank belong-to) item)    
+      (draw-chess dc country row col rank (chess-color belong-to) 'solid)
       
     ))
 
@@ -36,10 +36,10 @@
 
 ; ===================================================================
 
-(define occupied-list null) ; occupied-list is a list of (country row col chess belong-to)
+(define occupied-list null) ; occupied-list is a list of (country row col rank belong-to)
 
-(define (occupy country row col chess belong-to)
-   (add occupied-list (list country row col chess belong-to))   
+(define (occupy country row col rank belong-to)
+   (add occupied-list (list country row col rank belong-to))   
 )
 
 (define (same? country-row-col-else) ; judge if an element in occupied-list is
@@ -58,7 +58,7 @@
         (filter-not (same? (list country row col #f #f)) occupied-list)
   ))
 
-(define (find-chess country row col) ; find the chess based on the coordinates
+(define (find-rank country row col) ; find the rank based on the coordinates
   
   (define item (findf
                  (same? (list country row col #f #f))
@@ -88,26 +88,26 @@
 ; ====================================================================
 ; assignments
 
-(define (forbidden chess country row col)
+(define (forbidden rank country row col)
   
   (define forb #f)
-  (if (and (= chess 10) (not (is-base country row col))) 
+  (if (and (= rank 10) (not (is-base country row col))) 
       (set! forb #t))
-  (if (and (is-base country row col) (not (member chess (list 10 100 33))))
+  (if (and (is-base country row col) (not (member rank (list 10 100 33))))
       (set! forb #t))
-  (if (and (= chess 100) (not (>= row 4)))
+  (if (and (= rank 100) (not (>= row 4)))
       (set! forb #t))
-  (if (and (= chess 0) (= row 0))
+  (if (and (= rank 0) (= row 0))
       (set! forb #t))
-  (if (and (= chess 100)  (= row 4) (even? col)
-           (member (find-chess country 5 col) (list 40 39 38)))
+  (if (and (= rank 100)  (= row 4) (even? col)
+           (member (find-rank country 5 col) (list 40 39 38)))
       (set! forb #t))
            
       
   forb
 )
 
-(define (assign-country-row-col belong-to chess)
+(define (assign-country-row-col belong-to rank)
 
   (define country null)
   (define row null)
@@ -118,8 +118,8 @@
   (set! row (list-ref (range (row-num belong-to)) (random (row-num belong-to))))
   (set! col (list-ref (range (col-num belong-to)) (random (col-num belong-to))))
                                
-  (if (or (occupied? country row col) (is-camp country row col) (forbidden chess country row col))
-       (assign-country-row-col belong-to chess) (list country row col))
+  (if (or (occupied? country row col) (is-camp country row col) (forbidden rank country row col))
+       (assign-country-row-col belong-to rank) (list country row col))
 )
 
 (define (init-board)  
@@ -128,11 +128,11 @@
   (define country null)
 
   (for* ([belong-to (list up down left right)]
-         [chess whole-chess-set])
+         [rank whole-rank-set])
       
-         (get-from (country row col) (assign-country-row-col belong-to chess))
+         (get-from (country row col) (assign-country-row-col belong-to rank))
     
-         (occupy country row col chess belong-to)
+         (occupy country row col rank belong-to)
    )   
 )
 
@@ -145,63 +145,63 @@
 )
   
 ; ====================================================
-(define set-picked-up null) 
+(define chess-picked-up null) 
 (define which-turn down)
 
 (define (click-chess country-row-col)
 
-   (define cur-set #f)
+   (define cur-chess #f)
 
    (unless (null? country-row-col)
-       (set! cur-set
+       (set! cur-chess
          (findf (same? (append country-row-col (list #f #f))) occupied-list) 
        )
-       (if (not cur-set)
-           (set! cur-set (append country-row-col (list null null)))
+       (if (not cur-chess)
+           (set! cur-chess (append country-row-col (list null null)))
        )
    )
 
-   (when cur-set
+   (when cur-chess
      
-     (get-from (cur-country cur-row cur-col cur-chess belong-to) cur-set)
+     (get-from (cur-country cur-row cur-col cur-rank belong-to) cur-chess)
                               
-     (if (null? set-picked-up)
+     (if (null? chess-picked-up)
        ; chess-not-picked-up
        (when (and (occupied? cur-country cur-row cur-col) (eq? belong-to which-turn)
-                   (not (or (is-base cur-country cur-row cur-col) (= cur-chess 100)) ))
-             (set! set-picked-up cur-set)
-             (draw-chess dc cur-country cur-row cur-col cur-chess (chess-color 0) 'solid)
+                   (not (or (is-base cur-country cur-row cur-col) (= cur-rank 100)) ))
+             (set! chess-picked-up cur-chess)
+             (draw-chess dc cur-country cur-row cur-col cur-rank (chess-color 0) 'solid)
         )                                 
           
-        ; set-picked-up
+        ; chess-picked-up
         (begin
-          (get-from (from-country from-row from-col from-chess from-belong-to) set-picked-up)
-          (get-from (r-list) (list (route-list occupied? from-country from-row from-col from-chess cur-country cur-row cur-col)))
+          (get-from (from-country from-row from-col from-rank from-belong-to) chess-picked-up)
+          (get-from (r-list) (list (route-list occupied? from-country from-row from-col from-rank cur-country cur-row cur-col)))
           
           (if (<= (length r-list) 1)
              (begin
-                     (set! set-picked-up null)
+                     (set! chess-picked-up null)
                      (re-draw)
               )
               ; else
               (if (not (occupied? cur-country cur-row cur-col))                            
                  (begin
                      (delete-occupied from-country from-row from-col) 
-                     (occupy cur-country cur-row cur-col from-chess from-belong-to)
-                     (set! set-picked-up null)
+                     (occupy cur-country cur-row cur-col from-rank from-belong-to)
+                     (set! chess-picked-up null)
                      (set! which-turn (next-country which-turn))
                      (re-draw)
                   )
                   ; else occupied
                   (unless (or (ally? from-belong-to belong-to) (is-camp cur-country cur-row cur-col))
-                     (let ([beat (beat-it from-chess cur-chess)])
+                     (let ([beat (beat-it from-rank cur-rank)])
                        (when (> beat -1) 
                              (delete-occupied cur-country cur-row cur-col)
-                             (if (= cur-chess 10) (delete-side belong-to) ); delete everything!
+                             (if (= cur-rank 10) (delete-side belong-to) ); delete everything!
                        )      
-                       (if (> beat 0) (occupy cur-country cur-row cur-col from-chess from-belong-to))
+                       (if (> beat 0) (occupy cur-country cur-row cur-col from-rank from-belong-to))
                        (delete-occupied from-country from-row from-col) 
-                       (set! set-picked-up null)
+                       (set! chess-picked-up null)
                        (set! which-turn (next-country which-turn))
                        (if (check-die? which-turn) (delete-side which-turn))
                        (re-draw)
