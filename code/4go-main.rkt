@@ -176,7 +176,7 @@
         ; chess-picked-up
         (begin
           (get-from (from-country from-row from-col from-rank from-belong-to) chess-picked-up)
-          (get-from (r-list) (list (route-list occupied? from-country from-row from-col from-rank cur-country cur-row cur-col)))
+          (define r-list (route-list occupied? from-country from-row from-col from-rank cur-country cur-row cur-col))
           
           (if (<= (length r-list) 1)
              (begin
