@@ -20,9 +20,9 @@
 
   (match country
     [(== down) 'human]
-    [(== right) 'human]
+    [(== right) 'computer]
     [(== up) 'human]
-    [(== left) 'human]
+    [(== left) 'computer]
     )
   
 )
@@ -30,20 +30,48 @@
 ; ====================================================
 
 (define (computer-run belong-to)
+
+    (define whole-list (find-belong-to belong-to))
+    (define whole-length (length whole-list))
+   
+    (define some-item (list-ref whole-list (random whole-length)))  
+    (get-from (s-country s-row s-col s-rank s-belong-to) some-item)
+
+    (define possible-moves null)
+    (define one-move null)
   
-   ; testing
+
+    (if (movable? s-rank)
   
-   (if (and (occupied? belong-to 2 0) (not (occupied? belong-to 3 1)))
+    (for* ([d-country (list middle up left down right)]
+           [d-row (range (row-num d-country))]
+           [d-col (range (col-num d-country))])
 
-         (move-to belong-to 2 0 belong-to 3 1)
+       (get-from (dc dr dl d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
+                     
+       (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))      
+       (define accessible (> (length move-list) 1))
 
-     (if (and (occupied? belong-to 3 1) (not (occupied? belong-to 2 0)))
-
-         (move-to belong-to 3 1 belong-to 2 0)
-
-     )    
+       (define doable (or (not (occupied? d-country d-row d-col))
+                          (and (not (ally? s-belong-to d-belong-to))
+                               (not (is-camp? d-country d-row d-col)))))
+      
          
-   )
+       (if (and accessible doable)
+
+           (add possible-moves (list s-country s-row s-col d-country d-row d-col)))
+      
+    ))
+
+    (if (not (null? possible-moves))
+        (begin
+          (set! one-move (list-ref possible-moves (random (length possible-moves))))
+          (apply move-to one-move)
+        )
+        ; else
+        (computer-run belong-to)
+    )    
+
   
 )
 
@@ -117,14 +145,19 @@
 
 (define (occupied? country row col) 
       (if (find-whole-chess country row col) #t #f))
-            
+
+(define (find-belong-to belong-to)
+        (filter (same-belong-to? belong-to) occupied-list)
+)
+
 (define (delete-country belong-to) ; delete everything of a country
   (set! occupied-list
         (filter-not (same-belong-to? belong-to) occupied-list)))
         
 (define (empty? belong-to)
-  (null? (filter (same-belong-to? belong-to) occupied-list)))
-  
+  (null? find-belong-to)
+)
+
 ; ====================================================================
 ; assignments
 
@@ -205,7 +238,21 @@
      (delete-occupied o-country o-row o-col)
      (occupy country row col o-rank o-belong-to 'normal)
    )
+
+   (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
+   (define accessible (> (length move-list) 1))
  
+   (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
+
+        (define beat? (beat-it? o-rank rank))
+        (when (> beat? -1)
+              (delete-occupied country row col)
+              (if (is-flag? rank) (delete-country belong-to))
+         )
+        (delete-occupied o-country o-row o-col)
+        (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
+
+   )
 )
 
 ; ====================================================
