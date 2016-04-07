@@ -7,9 +7,9 @@
          blue-pen red-pen white-pen blue-dashed-pen 
          my-font get-top-left-corner get-size-xy valid?
          left-country right-country row-num col-num
-         coordinatex is-camp is-base not-middle on-rail
-         beat-it ally? chess-color draw-chess
-         whole-rank-set
+         coordinatex is-camp? is-base? not-middle? on-rail?
+         movable? is-labor? is-flag? beat-it? ally?
+         draw-chess whole-rank-set
 )
  
 ; =================================
@@ -33,13 +33,17 @@
     ))
 
 ; extract variables values from a list
+; example: (get-from (a b c) a-b-c-list)
 (define-syntax get-from
   (syntax-rules ()
     [(_ vars lst)
      (define-values vars (apply values
-                                (take lst (length (quote vars)))) 
-     )]
-   ))
+                                (let [(lst-value lst) (var-length (length (quote vars)))]
+        (if (and lst-value (not (null? lst-value))) ; if it is not #f or null
+            (take lst-value var-length) ; take first several elements
+            (make-list var-length #f)) ; make a list consisting of #f
+        )))
+    ]))
 
 ; =================================
 ;
@@ -148,7 +152,7 @@
    (right-country (right-country (right-country country)))
 )
 
-(define (not-middle country)
+(define (not-middle? country)
   (not (eq? country middle))
 )
 
@@ -158,16 +162,16 @@
      (eq? country1 (left-country (left-country country2))))
   (not (eq? country1 middle)) (not (eq? country2 middle))))     
        
-(define (is-camp country row col) ; is camp or not
+(define (is-camp? country row col) ; is camp or not
   (and (not (eq? country middle))
           (or (= row col) (= (+ row col) 4)) (>= row 1) (<= row 3)
  ))
 
-(define (is-base country row col) ; is base or not
+(define (is-base? country row col) ; is base or not
   (and (not (eq? country middle)) (= row 5) (or (= col 1) (= col 3)))
 )
 
-(define (on-rail country row col) ; is on railway or not
+(define (on-rail? country row col) ; is on railway or not
   (or (eq? country middle) (= row 0) (= row 4) 
        (and (= col 0) (< row 5)) (and (= col 4) (< row 5))))
 
@@ -185,29 +189,47 @@
     (list 10 100 100 100 0 0 30 30 30 40 39 38 38 37 37 36 36 35 35 34 34 34 33 33 33) ; order is relevant
 )     
 
-(define (beat-it num1 num2) ; win = 1, lose = -1, equal = 0
+(define (beat-it? num1 num2) ; win = 1, lose = -1, equal = 0
   (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
 (define (chess-color belong-to-country) ; chooses diferent colors for different belonging-to-countries
-  (match belong-to-country
-    [(== down) "red"]
-    [(== up)     "fuchsia"]
-    [(== left)    "green"]
-    [(== right)  "yellow"]
-    [else "Light Gray"]
-    )) 
+      (match belong-to-country
+         [(== down) "red"]
+         [(== up)     "fuchsia"]
+         [(== left)    "green"]
+         [(== right)  "yellow"]
+         [else "Light Gray"]
+  )) 
+
+(define (movable? rank)
+  (not (or (= rank 10) (= rank 100)))
+)
+
+(define (is-labor? rank)
+  (= rank 30)
+)
+
+(define (is-flag? rank)
+  (= rank 10)
+)  
 
 ; ===================================================================
 ; draw a chess somewhere with its text and color
 
-(define (draw-chess dc country row col rank color filled-style) ; dc is the device
+(define (draw-chess dc country row col rank belong-to state) ; dc is the device
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)] 
           [code (rank-code rank)]
           [iota 0.1]) ; iota is a small offset
+
+    (define color (chess-color belong-to))
+    (define filled-style 'solid)
+
+    (if (eq? state 'picked-up) (set! color "Light Gray"))
+    (if (eq? state 'extra) (set! filled-style 'crossdiag-hatch))
      
     (send dc set-brush color filled-style) ; can be 'solid     
     (send dc draw-rounded-rectangle (first xy) (second xy) (first ab) (second ab) )

@@ -18,7 +18,7 @@
 ;==================================================================================================
 
 (define (search-xy x y) ; search the parameters of chess according to its coordinates (x, y)
-  (let ([result null]
+  (let ([result #f]
          [quit #f] )
      (for* ([country (list up left down right middle)]
               [row (range (row-num country))]
