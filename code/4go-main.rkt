@@ -52,12 +52,16 @@
        (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))      
        (define accessible (> (length move-list) 1))
 
-       (define doable (or (not (occupied? d-country d-row d-col))
-                          (and (not (ally? s-belong-to d-belong-to))
-                               (not (is-camp? d-country d-row d-col)))))
-      
+       (define conquerable 
+                          (and (occupied? d-country d-row d-col)
+                               (not (ally? s-belong-to d-belong-to))
+                               (not (is-camp? d-country d-row d-col))
+                               (>= (beat-it? s-rank d-rank) 0)
+                       ))
+
+       (define go-to-empty (not (occupied? d-country d-row d-col)))
          
-       (if (and accessible doable)
+       (if (and accessible (or conquerable go-to-empty))
 
            (add possible-moves (list s-country s-row s-col d-country d-row d-col)))
       
@@ -238,9 +242,8 @@
    (when (not (occupied? country row col))
      (delete-occupied o-country o-row o-col)
      (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
-     (sleep 0.7)
      (re-draw)
-     (sleep 0.5)
+     (sleep 2)
      (delete-occupied o-country o-row o-col)
      (occupy country row col o-rank o-belong-to 'normal)
    )
@@ -257,9 +260,8 @@
          )
         (delete-occupied o-country o-row o-col)
         (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
-        (sleep 0.7)
         (re-draw)
-        (sleep 0.5)
+        (sleep 2)
         (delete-occupied o-country o-row o-col)
         (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
 
