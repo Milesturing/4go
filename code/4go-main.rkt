@@ -38,8 +38,7 @@
     (get-from (s-country s-row s-col s-rank s-belong-to) some-item)
 
     (define possible-moves null)
-    (define one-move null)
-  
+    (define one-move null)  
 
     (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
   
@@ -212,6 +211,7 @@
     
          (occupy country row col rank belong-to 'normal)
    )  
+
   
 )
 
@@ -238,19 +238,25 @@
 
    (get-from (o-c o-r o-l o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
    (get-from (c r l rank belong-to state) (find-whole-chess country row col))
-        
-   (when (not (occupied? country row col))
-     (delete-occupied o-country o-row o-col)
-     (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
-     (re-draw)
-     (sleep 2)
+
+   (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
+   (define accessible (> (length move-list) 1))
+
+   (when (and accessible (not (occupied? country row col)))
+
+     (display move-list)
+     (for* ([route move-list])
+           (get-from (r-country r-row r-col) route)
+           (delete-occupied r-country r-row r-col)
+           (occupy r-country r-row r-col o-rank o-belong-to (if (equal? route (last move-list)) 'normal 'picked-up))
+           (re-draw)
+           (sleep (/ 0.4 (length move-list)))
+           (delete-occupied r-country r-row r-col)
+     )  
      (delete-occupied o-country o-row o-col)
      (occupy country row col o-rank o-belong-to 'normal)
    )
 
-   (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
-   (define accessible (> (length move-list) 1))
- 
    (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
@@ -258,10 +264,15 @@
               (delete-occupied country row col)
               (if (is-flag? rank) (delete-country belong-to))
          )
-        (delete-occupied o-country o-row o-col)
-        (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
-        (re-draw)
-        (sleep 2)
+         (for* ([route move-list])
+           (get-from (r-country r-row r-col) route)
+           (delete-occupied r-country r-row r-col)
+           (occupy r-country r-row r-col o-rank o-belong-to (if (equal? route (last move-list)) 'normal 'picked-up))
+           (re-draw)
+           (sleep (/ 0.4 (length move-list)))
+           (delete-occupied r-country r-row r-col)
+         )  
+     
         (delete-occupied o-country o-row o-col)
         (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
 
