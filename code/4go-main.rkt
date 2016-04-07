@@ -41,7 +41,7 @@
     (define one-move null)
   
 
-    (if (movable? s-rank)
+    (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
   
     (for* ([d-country (list middle up left down right)]
            [d-row (range (row-num d-country))]
@@ -155,7 +155,7 @@
         (filter-not (same-belong-to? belong-to) occupied-list)))
         
 (define (empty? belong-to)
-  (null? find-belong-to)
+  (null? (find-belong-to belong-to))
 )
 
 ; ====================================================================
@@ -207,7 +207,8 @@
          (get-from (country row col) (assign-country-row-col belong-to rank))
     
          (occupy country row col rank belong-to 'normal)
-   )   
+   )  
+  
 )
 
 ; ====================================================
@@ -218,7 +219,7 @@
 
    (if (empty? which-turn)
        (go-to-next-country)
-
+       ; else
        (when (eq? (player which-turn) 'computer)
            (computer-run which-turn)
            (re-draw)
