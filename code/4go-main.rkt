@@ -21,7 +21,7 @@
   (match country
     [(== down) 'human]
     [(== right) 'computer]
-    [(== up) 'human]
+    [(== up) 'computer]
     [(== left) 'computer]
     )
   
@@ -258,7 +258,7 @@
 
    (when (and accessible (not (occupied? country row col)))
 
-      (draw-route move-list o-rank o-belong-to 0.4)
+      (draw-route move-list o-rank o-belong-to 0.7)
 
       (occupy country row col o-rank o-belong-to 'normal)
 
@@ -267,7 +267,7 @@
    (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
-        (draw-route move-list o-rank o-belong-to 0.4)
+        (draw-route move-list o-rank o-belong-to 0.7)
 
         (when (> beat? -1)
               (delete-occupied country row col)
