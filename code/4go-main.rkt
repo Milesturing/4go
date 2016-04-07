@@ -8,9 +8,45 @@
 ; ===================================================================
 ; global variables
 (define dc null) ; drawing context
+(define which-turn down) ; starting country
 
 (define target (make-bitmap frame-size frame-size))
 (send target load-file "chessboard.png" 'png)
+
+; ===================================================================
+; whether each side is human or computer
+
+(define (player country)
+
+  (match country
+    [(== down) 'human]
+    [(== right) 'human]
+    [(== up) 'human]
+    [(== left) 'human]
+    )
+  
+)
+
+; ====================================================
+
+(define (computer-run belong-to)
+  
+   ; testing
+  
+   (if (and (occupied? belong-to 2 0) (not (occupied? belong-to 3 1)))
+
+         (move-to belong-to 2 0 belong-to 3 1)
+
+     (if (and (occupied? belong-to 3 1) (not (occupied? belong-to 2 0)))
+
+         (move-to belong-to 3 1 belong-to 2 0)
+
+     )    
+         
+   )
+  
+)
+
 
 ; ===================================================================
 
@@ -89,14 +125,6 @@
 (define (empty? belong-to)
   (null? (filter (same-belong-to? belong-to) occupied-list)))
   
-(define (next-country country)
-  (if (empty? (right-country country))
-      (next-country (right-country country))
-      (right-country country)
-  )    
-)      
-
-  
 ; ====================================================================
 ; assignments
 
@@ -148,9 +176,39 @@
          (occupy country row col rank belong-to 'normal)
    )   
 )
-  
+
 ; ====================================================
-(define which-turn down)
+
+(define (go-to-next-country)
+
+  (set! which-turn (right-country which-turn))
+
+   (if (empty? which-turn)
+       (go-to-next-country)
+
+       (when (eq? (player which-turn) 'computer)
+           (computer-run which-turn)
+           (re-draw)
+           (go-to-next-country)
+       )          
+   )    
+)  
+
+; ====================================================
+
+(define (move-to o-country o-row o-col country row col)
+
+   (get-from (o-c o-r o-l o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
+   (get-from (c r l rank belong-to state) (find-whole-chess country row col))
+        
+   (when (not (occupied? country row col))
+     (delete-occupied o-country o-row o-col)
+     (occupy country row col o-rank o-belong-to 'normal)
+   )
+ 
+)
+
+; ====================================================
 
 (define (click-chess country-row-col)
 
@@ -183,7 +241,7 @@
 
           (delete-occupied o-country o-row o-col)
           (occupy country row col o-rank o-belong-to 'normal)
-          (set! which-turn (next-country which-turn))
+          (go-to-next-country)
 
       )
 
@@ -197,7 +255,7 @@
          )
         (delete-occupied o-country o-row o-col)
         (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
-        (set! which-turn (next-country which-turn))
+        (go-to-next-country)
 
       )
       
