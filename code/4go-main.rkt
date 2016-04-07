@@ -237,14 +237,12 @@
 (define (draw-route move-list rank belong-to time)
 
     (for* ([route move-list])
-           (get-from (r-country r-row r-col) route)
       
+           (get-from (r-country r-row r-col) route)      
            (delete-occupied r-country r-row r-col)
-           (occupy r-country r-row r-col rank belong-to 'picked-up)
-      
+           (occupy r-country r-row r-col rank belong-to 'picked-up)      
            (re-draw)
            (sleep (/ time (length move-list))) ; time is usually set to 0.4
-
            (delete-occupied r-country r-row r-col)
      )
   
@@ -262,7 +260,6 @@
 
       (draw-route move-list o-rank o-belong-to 0.4)
 
-      (delete-occupied country row col)
       (occupy country row col o-rank o-belong-to 'normal)
 
    )
@@ -270,15 +267,20 @@
    (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
+        (draw-route move-list o-rank o-belong-to 0.4)
+
         (when (> beat? -1)
               (delete-occupied country row col)
               (if (is-flag? rank) (delete-country belong-to))
-         )
-     
-        (draw-route move-list o-rank o-belong-to 0.4)
-     
-        (delete-occupied country row col)
-        (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
+         )     
+
+        (if (= beat? -1)
+            (occupy country row col rank belong-to 'normal)
+        )    
+            
+        (if (= beat? 1)
+          (occupy country row col o-rank o-belong-to 'normal)
+        )  
 
    )
 )
@@ -314,8 +316,10 @@
 
       (when (and accessible (not state)) ; empty position
 
-          (delete-occupied o-country o-row o-col)
+          (draw-route move-list o-rank o-belong-to 0.05)
+
           (occupy country row col o-rank o-belong-to 'normal)
+        
           (go-to-next-country)
 
       )
@@ -324,12 +328,22 @@
                  (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
+
+        (draw-route move-list o-rank o-belong-to 0.05)
+
         (when (> beat? -1)
               (delete-occupied country row col)
               (if (is-flag? rank) (delete-country belong-to))
          )
-        (delete-occupied o-country o-row o-col)
-        (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
+
+        (if (= beat? -1)
+            (occupy country row col rank belong-to 'normal)
+        )    
+
+        (when (= beat? 1)
+          (occupy country row col o-rank o-belong-to 'normal)
+        )
+      
         (go-to-next-country)
 
       )
