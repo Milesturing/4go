@@ -35,7 +35,7 @@
 
 ; ===================================================================
 
-(define occupied-list null) ; occupied-list is a list of (country row col rank belong-to)
+(define occupied-list null) ; occupied-list is a list of (country row col rank belong-to state)
 
 (define (occupy country row col rank belong-to state)
    (add occupied-list (list country row col rank belong-to state))   

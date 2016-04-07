@@ -13,9 +13,9 @@
 )
  
 ; =================================
-; syntax sugar
-; (if a b) is equal to (if a b null)
-  
+; syntax sugars
+
+; (if a b) is equal to (if a b null)  
 (define-syntax if
   (syntax-rules ()
    [(_ condition then-clause)
@@ -78,7 +78,7 @@
 (define (col-num country) (if (eq? country middle) 3 5))  ; how many cols in total
 
 ; ===================================================================
-; draw the board
+; pens and fonts
 (define blue-pen (new pen% [color "blue"] [width 2]))
 (define red-pen (new pen% [color "red"] [width 2]))
 (define white-pen (new pen% [color "white"] [width 2]))
@@ -119,7 +119,6 @@
 ))
   
 ; ===================================================================
-; utilities
 
 (define (get-top-left-corner country row col)
      (match country
@@ -194,19 +193,6 @@
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
 
-(define (chess-color belong-to-country) ; chooses diferent colors for different belonging-to-countries
-      (match belong-to-country
-         [(== down) "red"]
-         [(== up)     "fuchsia"]
-         [(== left)    "green"]
-         [(== right)  "yellow"]
-         [else "Light Gray"]
-  )) 
-
-(define (movable? rank)
-  (not (or (= rank 10) (= rank 100)))
-)
-
 (define (is-labor? rank)
   (= rank 30)
 )
@@ -215,8 +201,22 @@
   (= rank 10)
 )  
 
+(define (movable? rank)
+  (not (or (= rank 10) (= rank 100)))
+)
+
 ; ===================================================================
-; draw a chess somewhere with its text and color
+; draw a chess somewhere with regards to its text and color
+
+(define (chess-color belong-to-country) ; chooses diferent colors for different belonging-to-countries
+      (match belong-to-country
+         [(== down) "red"]
+         [(== up)     "fuchsia"]
+         [(== left)    "green"]
+         [(== right)  "yellow"]
+         [else "Light Gray"]
+  ))
+
 
 (define (draw-chess dc country row col rank belong-to state) ; dc is the device
   
