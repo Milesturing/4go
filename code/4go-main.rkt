@@ -237,6 +237,11 @@
         
    (when (not (occupied? country row col))
      (delete-occupied o-country o-row o-col)
+     (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
+     (sleep 0.7)
+     (re-draw)
+     (sleep 0.5)
+     (delete-occupied o-country o-row o-col)
      (occupy country row col o-rank o-belong-to 'normal)
    )
 
@@ -250,6 +255,11 @@
               (delete-occupied country row col)
               (if (is-flag? rank) (delete-country belong-to))
          )
+        (delete-occupied o-country o-row o-col)
+        (occupy o-country o-row o-col o-rank o-belong-to 'picked-up)
+        (sleep 0.7)
+        (re-draw)
+        (sleep 0.5)
         (delete-occupied o-country o-row o-col)
         (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
 
