@@ -234,6 +234,22 @@
 
 ; ====================================================
 
+(define (draw-route move-list rank belong-to time)
+
+    (for* ([route move-list])
+           (get-from (r-country r-row r-col) route)
+      
+           (delete-occupied r-country r-row r-col)
+           (occupy r-country r-row r-col rank belong-to 'picked-up)
+      
+           (re-draw)
+           (sleep (/ time (length move-list))) ; time is usually set to 0.4
+
+           (delete-occupied r-country r-row r-col)
+     )
+  
+)
+
 (define (move-to o-country o-row o-col country row col)
 
    (get-from (o-c o-r o-l o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
@@ -244,17 +260,11 @@
 
    (when (and accessible (not (occupied? country row col)))
 
-     (display move-list)
-     (for* ([route move-list])
-           (get-from (r-country r-row r-col) route)
-           (delete-occupied r-country r-row r-col)
-           (occupy r-country r-row r-col o-rank o-belong-to (if (equal? route (last move-list)) 'normal 'picked-up))
-           (re-draw)
-           (sleep (/ 0.4 (length move-list)))
-           (delete-occupied r-country r-row r-col)
-     )  
-     (delete-occupied o-country o-row o-col)
-     (occupy country row col o-rank o-belong-to 'normal)
+      (draw-route move-list o-rank o-belong-to 0.4)
+
+      (delete-occupied country row col)
+      (occupy country row col o-rank o-belong-to 'normal)
+
    )
 
    (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
@@ -264,16 +274,10 @@
               (delete-occupied country row col)
               (if (is-flag? rank) (delete-country belong-to))
          )
-         (for* ([route move-list])
-           (get-from (r-country r-row r-col) route)
-           (delete-occupied r-country r-row r-col)
-           (occupy r-country r-row r-col o-rank o-belong-to (if (equal? route (last move-list)) 'normal 'picked-up))
-           (re-draw)
-           (sleep (/ 0.4 (length move-list)))
-           (delete-occupied r-country r-row r-col)
-         )  
      
-        (delete-occupied o-country o-row o-col)
+        (draw-route move-list o-rank o-belong-to 0.4)
+     
+        (delete-occupied country row col)
         (if (= beat? 1) (occupy country row col o-rank o-belong-to 'normal))
 
    )
