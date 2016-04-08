@@ -19,7 +19,7 @@
 (define (player country)
 
   (match country
-    [(== down) 'human]
+    [(== down) 'computer]
     [(== right) 'computer]
     [(== up) 'computer]
     [(== left) 'computer]
@@ -29,14 +29,24 @@
 
 ; ====================================================
 
-(define (under-attack chess enemy-chesses)
+(define (under-attack chess)
 
+  (define result #f)
+  (define quit #f)
+
+    
+ (when chess
+    
     (get-from (country row col rank belong-to) chess)
 
-    (define result #f)
-    (define quit #f)
+    (define enemy-chesses
 
-    (for* [(e-chess null)] ; enemy-chesses)]
+       (append (find-belong-to (right-country belong-to))
+               (find-belong-to (left-country belong-to)))
+
+    )
+
+    (for* [(e-chess enemy-chesses)]
        #:break quit
 
       (get-from (e-country e-row e-col e-rank) e-chess)
@@ -55,7 +65,9 @@
         )
       
       )
-      
+
+   )
+  
    result
 
 )
@@ -83,13 +95,6 @@
   (define all-chess (find-belong-to belong-to))
   (define sum 0)
 
-  (define enemy-chesses
-
-       (append (find-belong-to (right-country belong-to))
-               (find-belong-to (left-country belong-to)))
-
-  )
-
 
   (when (not (empty? belong-to)) 
  
@@ -100,15 +105,6 @@
 
     (set! sum (+ sum (score rank)))
    
-;    (if (member rank (list 10 40 39 0))
-
-;        (if (under-attack chess enemy-chesses)
-            
-;             (set! sum (- sum (* 0.9 (score rank))))
-;        )
-        
-;    )
-
     ;
 
     (if (is-camp? country row col) (set! sum (add1 sum)))
@@ -176,8 +172,9 @@
          (get-from (dc dr dl d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
 
          (define accessible #f)
-        
-         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col)) (not (and (not (empty? d-country)) (>= d-row 4))))
+
+         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col)) (not (and (not (empty? d-country)) (>= d-row 4)))
+             )
 
              (set! accessible #f)
 
@@ -222,6 +219,15 @@
                                 (calculate-value (right-country (right-country belong-to))))
                              (+ (calculate-value (right-country belong-to))
                                 (calculate-value (left-country belong-to)))))
+
+           
+
+              (if (and (not (is-labor? s-rank)) (under-attack (find-whole-chess d-country d-row d-col)))
+            
+                  (set! value (- value (* (/ (score 39) (score 40)) (score s-rank))))
+
+              )
+
 
               (set! value (+ value (random 5)))
    
@@ -495,7 +501,7 @@
 
       (when (and accessible (not state)) ; empty position
 
-          (draw-route move-list o-rank o-belong-to 0.05)
+          (draw-route move-list o-rank o-belong-to 0.1)
 
           (occupy country row col o-rank o-belong-to 'normal)
         
@@ -508,7 +514,7 @@
 
         (define beat? (beat-it? o-rank rank))
 
-        (draw-route move-list o-rank o-belong-to 0.05)
+        (draw-route move-list o-rank o-belong-to 0.1)
 
         (when (> beat? -1)
               (delete-occupied country row col)
