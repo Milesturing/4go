@@ -8,7 +8,7 @@
          my-font get-top-left-corner get-size-xy valid?
          left-country right-country row-num col-num
          coordinatex is-camp? is-base? not-middle? on-rail?
-         movable? is-labor? is-flag? beat-it? ally?
+         movable? is-labor? is-flag? beat-it? ally? enemy?
          draw-chess whole-rank-set
 )
  
@@ -159,6 +159,12 @@
   (and
   (or (eq? country1 country2)
      (eq? country1 (left-country (left-country country2))))
+  (not (eq? country1 middle)) (not (eq? country2 middle))))     
+
+(define (enemy? country1 country2) ; if they are enemies or same side
+  (and
+  (or (eq? country1 (left-country country2))
+      (eq? country1 (right-country country2)))
   (not (eq? country1 middle)) (not (eq? country2 middle))))     
        
 (define (is-camp? country row col) ; is camp or not

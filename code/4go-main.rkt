@@ -29,51 +29,214 @@
 
 ; ====================================================
 
+(define (under-attack chess enemy-chesses)
+
+    (get-from (country row col rank belong-to) chess)
+
+    (define result #f)
+    (define quit #f)
+
+    (for* [(e-chess null)] ; enemy-chesses)]
+       #:break quit
+
+      (get-from (e-country e-row e-col e-rank) e-chess)
+
+      (when (or (= (beat-it? e-rank rank) 1) (= e-rank 0))
+
+         (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
+
+         (define accessible (> (length move-list) 1))
+
+         (when accessible
+
+              (set! result #t)
+              (set! quit #t)
+         )
+        )
+      
+      )
+      
+   result
+
+)
+
+(define (score rank)
+  
+      (match rank
+        ([== 10] 500)
+        ([== 40] 40)
+        ([== 39] 30)
+        ([== 38] 20)
+        ([== 37] 10)
+        ([== 36] 4)
+        ([== 35] 3)
+        ([== 0]  22)
+        ([== 30] 6)
+        ([== 100] 3)
+        (else    2)
+       )
+)
+
+
+(define (calculate-value belong-to)
+
+  (define all-chess (find-belong-to belong-to))
+  (define sum 0)
+
+  (define enemy-chesses
+
+       (append (find-belong-to (right-country belong-to))
+               (find-belong-to (left-country belong-to)))
+
+  )
+
+
+  (when (not (empty? belong-to)) 
+ 
+
+  (for* ([chess all-chess])
+
+    (get-from (country row col rank) chess)
+
+    (set! sum (+ sum (score rank)))
+   
+;    (if (member rank (list 10 40 39 0))
+
+;        (if (under-attack chess enemy-chesses)
+            
+;             (set! sum (- sum (* 0.9 (score rank))))
+;        )
+        
+;    )
+
+    ;
+
+    (if (is-camp? country row col) (set! sum (add1 sum)))
+     
+   ) ; for
+
+   (define flag-list (filter (same-rank? 10) all-chess))
+
+   (when (not (null? flag-list))
+
+   (define flag (car flag-list))
+
+   (get-from (c r flag-col) flag)
+
+   (define (extra-score e-row e-col e-score)
+
+     (when (occupied? belong-to e-row e-col)
+
+       (get-from (cc rr ll kk which-side) (find-whole-chess belong-to e-row e-col))
+
+       (if (enemy? which-side belong-to)
+
+           (set! sum (- sum e-score))
+           
+       ))
+     
+    )
+
+   (extra-score 3 flag-col 60)
+   (extra-score 4 flag-col 90)
+   (extra-score 5 (add1 flag-col) 90)
+   (extra-score 5 (sub1 flag-col) 90)
+   (extra-score 2 2 40)
+   (extra-score 3 (- 4 flag-col) 10)  
+   (extra-score 4 (add1 flag-col) 10)
+   (extra-score 4 (sub1 flag-col) 10)
+    
+    )
+    )
+  
+   sum
+
+)
+
 (define (computer-run belong-to)
 
     (define whole-list (find-belong-to belong-to))
-    (define whole-length (length whole-list))
-   
-    (define some-item (list-ref whole-list (random whole-length)))  
-    (get-from (s-country s-row s-col s-rank s-belong-to) some-item)
+    (define one-move null)
+    (define value 0)
+    (define max-value -10000)
+    (define save-occupied null)
 
-    (define possible-moves null)
-    (define one-move null)  
+    (for* ([some-chess whole-list])
 
-    (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
-  
-    (for* ([d-country (list middle up left down right)]
-           [d-row (range (row-num d-country))]
-           [d-col (range (col-num d-country))])
-
-       (get-from (dc dr dl d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
-                     
-       (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))      
-       (define accessible (> (length move-list) 1))
-
-       (define conquerable 
-                          (and (occupied? d-country d-row d-col)
-                               (not (ally? s-belong-to d-belong-to))
-                               (not (is-camp? d-country d-row d-col))
-                               (>= (beat-it? s-rank d-rank) 0)
-                       ))
-
-       (define go-to-empty (not (occupied? d-country d-row d-col)))
-         
-       (if (and accessible (or conquerable go-to-empty))
-
-           (add possible-moves (list s-country s-row s-col d-country d-row d-col)))
+      (get-from (s-country s-row s-col s-rank s-belong-to) some-chess)
       
+      (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
+  
+      (for* ([d-country (list middle up left down right)]
+             [d-row (range (row-num d-country))]
+             [d-col (range (col-num d-country))])
+
+         (get-from (dc dr dl d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
+
+         (define accessible #f)
+        
+         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col)) (not (and (not (empty? d-country)) (>= d-row 4))))
+
+             (set! accessible #f)
+
+             (begin
+               (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
+               (set! accessible (> (length move-list) 1))
+              )
+         )
+        
+
+         (define goable   (or (not (occupied? d-country d-row d-col))
+                          (and (occupied? d-country d-row d-col)
+                               (enemy? s-belong-to d-belong-to)
+                               (not (is-camp? d-country d-row d-col))
+                               (not (and (is-base? d-country d-row d-col)
+                                         (not (eq? d-rank 10))))
+                              )))
+
+         (when (and accessible goable)
+
+             (set! save-occupied occupied-list)
+
+             (delete-occupied s-country s-row s-col)
+
+             (if (not (occupied? d-country d-row d-col))
+
+                  (occupy d-country d-row d-col s-rank s-belong-to 'normal)
+                 
+                  ; else
+
+                 (match (beat-it? s-rank d-rank)
+                        ([== 1] (begin
+                                  (delete-occupied d-country d-row d-col)
+                                  (occupy d-country d-row d-col s-rank s-belong-to 'normal)
+                                 ))
+                        ([== 0] (delete-occupied d-country d-row d-col))
+                        ([== -1] null)
+                   )
+                 )
+
+              (set! value (- (+ (calculate-value belong-to)
+                                (calculate-value (right-country (right-country belong-to))))
+                             (+ (calculate-value (right-country belong-to))
+                                (calculate-value (left-country belong-to)))))
+
+              (set! value (+ value (random 5)))
+   
+              (when (>= value max-value)
+
+                    (set! max-value value)
+                    (set! one-move (list s-country s-row s-col d-country d-row d-col))
+              )
+                  
+              (set! occupied-list save-occupied)
+            )
+        )
+
     ))
 
-    (if (not (null? possible-moves))
-        (begin
-          (set! one-move (list-ref possible-moves (random (length possible-moves))))
-          (apply move-to one-move)
-        )
-        ; else
-        (computer-run belong-to)
-    )    
+
+    (apply move-to one-move)
 
   
 )
@@ -115,6 +278,11 @@
           (eq? (third lst) col)))
 )
 
+(define (same-rank? rank)
+  (lambda (lst)
+    (eq? (fourth lst) rank))
+)
+
 (define (same-belong-to? belong-to)
   (lambda (lst)
     (eq? (fifth lst) belong-to))
@@ -139,7 +307,7 @@
       occupied-list)
 )
 
-(define (find-rank country row col) ; find the rank based on the coordinates
+(define (find-its-rank country row col) ; find the rank based on the coordinates
   
   (define item (find-whole-chess country row col))
   
@@ -152,6 +320,10 @@
 (define (find-belong-to belong-to)
         (filter (same-belong-to? belong-to) occupied-list)
 )
+
+(define (find-rank rank)
+        (filter (same-rank? rank) occupied-list)
+)  
 
 (define (delete-country belong-to) ; delete everything of a country
   (set! occupied-list
@@ -176,10 +348,10 @@
   (if (and (= rank 0) (= row 0))
       (set! forb #t))
   (if (and (= rank 100) (= row 4) (even? col)
-           (member (find-rank country 5 col) (list 40 39 38)))
+           (member (find-its-rank country 5 col) (list 40 39 38)))
       (set! forb #t))
   (if (and (= row 5) (even? col) (member rank (list 40 39 38))
-           (eq? (find-rank country 4 col) 100))
+           (eq? (find-its-rank country 4 col) 100))
       (set! forb #t))
            
       
@@ -212,7 +384,12 @@
          (occupy country row col rank belong-to 'normal)
    )  
 
-  
+;  (occupy down 5 1 10 down 'normal)
+;  (occupy down 0 1 38 down 'normal)
+;  (occupy down 4 1 39 right 'normal)
+;  (occupy down 4 0 40 down 'normal)
+;  (occupy right 0 0 39 right 'normal)
+
 )
 
 ; ====================================================
