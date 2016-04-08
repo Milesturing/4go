@@ -174,7 +174,7 @@
          (define accessible #f)
 
          (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col))
-                  ; (not (and (not (empty? d-country)) (>= d-row 4)))
+                   (not (and (not (empty? d-belong-to)) (>= d-row 4)))
              )
 
              (set! accessible #f)
