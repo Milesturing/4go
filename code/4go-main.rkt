@@ -19,7 +19,7 @@
 (define (player country)
 
   (match country
-    [(== down) 'computer]
+    [(== down) 'human]
     [(== right) 'computer]
     [(== up) 'computer]
     [(== left) 'computer]
@@ -173,7 +173,8 @@
 
          (define accessible #f)
 
-         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col)) (not (and (not (empty? d-country)) (>= d-row 4)))
+         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col))
+                  ; (not (and (not (empty? d-country)) (>= d-row 4)))
              )
 
              (set! accessible #f)
@@ -222,9 +223,10 @@
 
            
 
-              (if (and (not (is-labor? s-rank)) (under-attack (find-whole-chess d-country d-row d-col)))
-            
-                  (set! value (- value (* (/ (score 39) (score 40)) (score s-rank))))
+              (when (and (not (is-labor? s-rank)) (under-attack (find-whole-chess d-country d-row d-col)))
+
+                  (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
+                  (set! value (- value (* ratio (score s-rank))))
 
               )
 
@@ -384,6 +386,8 @@
   (set! occupied-list null)
   (define country null)
 
+  (if #t ; for debug
+      
   (for* ([belong-to (list up down left right)]
          [rank whole-rank-set])
       
@@ -392,12 +396,17 @@
          (occupy country row col rank belong-to 'normal)
    )  
 
-;  (occupy down 5 1 10 down 'normal)
-;  (occupy down 0 1 38 down 'normal)
-;  (occupy up 4 4 39 right 'normal)
-;  (occupy down 4 1 100 down 'normal)
-;  (occupy right 0 0 39 right 'normal)
+  (begin
+  (occupy down 5 1 10 down 'normal)
+  (occupy right 5 1 10 right 'normal)
+  (occupy down 0 0 39 down 'normal)
+  (occupy down 1 1 0 down 'normal)
+  (occupy up 4 4 40 right 'normal)
+  (occupy down 4 1 100 down 'normal)
+  (occupy right 0 0 39 right 'normal)
+  )
 
+  )
 )
 
 ; ====================================================
