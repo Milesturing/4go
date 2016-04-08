@@ -145,7 +145,9 @@
    (extra-score 3 (- 4 flag-col) 10)  
    (extra-score 4 (add1 flag-col) 10)
    (extra-score 4 (sub1 flag-col) 10)
-    
+   (extra-score 1 1 3)
+   (extra-score 1 3 3)
+     
     )
     )
   
@@ -386,8 +388,8 @@
 
 ;  (occupy down 5 1 10 down 'normal)
 ;  (occupy down 0 1 38 down 'normal)
-;  (occupy down 4 1 39 right 'normal)
-;  (occupy down 4 0 40 down 'normal)
+;  (occupy up 4 4 39 right 'normal)
+;  (occupy down 4 1 100 down 'normal)
 ;  (occupy right 0 0 39 right 'normal)
 
 )
