@@ -34,10 +34,9 @@
   (define result #f)
   (define quit #f)
 
-    
- (when chess
-    
-    (get-from (country row col rank belong-to) chess)
+  (get-from (country row col rank belong-to) chess)
+  
+  (when (and chess (not (is-camp? country row col)))
 
     (define enemy-chesses
 
@@ -51,7 +50,7 @@
 
       (get-from (e-country e-row e-col e-rank) e-chess)
 
-      (when (or (= (beat-it? e-rank rank) 1) (= e-rank 0))
+      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0) (= rank 0)))
 
          (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
 
@@ -117,13 +116,13 @@
 
    (define flag (car flag-list))
 
-   (get-from (c r flag-col) flag)
+   (get-from (_ _2 flag-col) flag)
 
    (define (extra-score e-row e-col e-score)
 
      (when (occupied? belong-to e-row e-col)
 
-       (get-from (cc rr ll kk which-side) (find-whole-chess belong-to e-row e-col))
+       (get-from (_ _2 _3 _4 which-side) (find-whole-chess belong-to e-row e-col))
 
        (if (enemy? which-side belong-to)
 
@@ -133,7 +132,7 @@
      
     )
 
-   (extra-score 3 flag-col 60)
+   (extra-score 3 flag-col 65)
    (extra-score 4 flag-col 90)
    (extra-score 5 (add1 flag-col) 90)
    (extra-score 5 (sub1 flag-col) 90)
@@ -151,6 +150,7 @@
 
 )
 
+
 (define (computer-run belong-to)
 
     (define whole-list (find-belong-to belong-to))
@@ -158,6 +158,7 @@
     (define value 0)
     (define max-value -10000)
     (define save-occupied null)
+    (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
 
     (for* ([some-chess whole-list])
 
@@ -169,7 +170,7 @@
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-         (get-from (dc dr dl d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
+         (get-from (_ _2 _3 d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
 
          (define accessible #f)
 
@@ -225,7 +226,6 @@
 
               (when (and (not (is-labor? s-rank)) (under-attack (find-whole-chess d-country d-row d-col)))
 
-                  (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
                   (set! value (- value (* ratio (score s-rank))))
 
               )
@@ -444,8 +444,8 @@
 
 (define (move-to o-country o-row o-col country row col)
 
-   (get-from (o-c o-r o-l o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
-   (get-from (c r l rank belong-to state) (find-whole-chess country row col))
+   (get-from (_ _2 _3 o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
+   (get-from (_x _y _z rank belong-to state) (find-whole-chess country row col))
 
    (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
    (define accessible (> (length move-list) 1))
@@ -486,7 +486,7 @@
   (when country-row-col
     
     (get-from (country row col) country-row-col)
-    (get-from (c r l rank belong-to state) (find-whole-chess country row col))
+    (get-from (_ _2 _3 rank belong-to state) (find-whole-chess country row col))
     (get-from (o-country o-row o-col o-rank o-belong-to o-state) (find-picked-up)) ; original info
         
     (when (and (not o-state) (eq? belong-to which-turn) (movable? rank) (not (is-base? country row col)))
