@@ -50,7 +50,7 @@
 
       (get-from (e-country e-row e-col e-rank) e-chess)
 
-      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0) (= rank 0)))
+      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0)))
 
          (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
 
@@ -419,8 +419,9 @@
        (go-to-next-country)
        ; else
        (when (eq? (player which-turn) 'computer)
-           (computer-run which-turn)
            (re-draw)
+           (sleep 0.7)
+           (computer-run which-turn)
            (go-to-next-country)
        )          
    )    
@@ -445,7 +446,7 @@
 (define (move-to o-country o-row o-col country row col)
 
    (get-from (_ _2 _3 o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
-   (get-from (_x _y _z rank belong-to state) (find-whole-chess country row col))
+   (get-from (_4 _5 _6 rank belong-to state) (find-whole-chess country row col))
 
    (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
    (define accessible (> (length move-list) 1))
@@ -458,7 +459,7 @@
 
    )
 
-   (when (and accessible state (occupied? country row col) (not (ally? o-belong-to belong-to)) (not (is-camp? country row col)) ) ; fight with it!
+   (when (and accessible state (occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
         (draw-route move-list o-rank o-belong-to 0.7)
@@ -518,7 +519,7 @@
 
       )
 
-      (when (and accessible state (not (ally? o-belong-to belong-to))
+      (when (and accessible state (enemy? o-belong-to belong-to)
                  (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
