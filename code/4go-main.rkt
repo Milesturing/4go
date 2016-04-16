@@ -20,7 +20,7 @@
 (define (player country)
 
   (match country
-    [(== down) 'computer]
+    [(== down) 'human]
     [(== right) 'computer]
     [(== up) 'computer]
     [(== left) 'computer]
