@@ -20,7 +20,7 @@
 (define (player country)
 
   (match country
-    [(== down) 'human]
+    [(== down) 'computer]
     [(== right) 'computer]
     [(== up) 'computer]
     [(== left) 'computer]
@@ -32,8 +32,7 @@
 
 (define (under-attack chess)
 
-  (define result #f)
-  (define quit #f)
+  (define result 0)
 
   (get-from (country row col rank belong-to) chess)
   
@@ -45,30 +44,42 @@
                (find-belong-to (left-country belong-to)))
 
     )
-
+    
+    (define quit #f)
+    
     (for* [(e-chess enemy-chesses)]
        #:break quit
 
       (get-from (e-country e-row e-col e-rank) e-chess)
 
-      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1)
-                                       (and (= e-rank 0) (> (score rank) (score e-rank)))
-                                       (and (= rank 0) (> (score rank) (score e-rank)))
-                                   ) (not (= rank 100)))
+      (when (movable? e-rank)
 
-         (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
+         (define beat? (beat-it? e-rank rank))
         
-         (define accessible (> (length move-list) 1))
+         (when (and (= beat? 1) (not (= rank 100)))
 
-         (when accessible
+           (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
+           (define accessible (> (length move-list) 1))
 
-              (set! result #t)
+           (when accessible
+              (set! result (- (score rank)))
               (set! quit #t) ; quit for loop
+           )
          )
-        )
-      
-      )
 
+         (when (= beat? 0)
+
+           (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
+           (define accessible (> (length move-list) 1))
+
+           (when accessible
+              (set! result (- (score e-rank) (score rank)))
+              (set! quit #t) ; quit for loop
+           )
+         )
+               
+      )
+     )
    )
 
    result
@@ -92,7 +103,8 @@
        )
 )
 
-(define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40) 2) ) ; a constant
+(define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40) ) ) ; a constant
+
 
 (define (calculate-value belong-to)
 
@@ -111,13 +123,9 @@
 
     (when (not (is-labor? rank))
 
-          (when (under-attack chess) ; if under attacked, the value of chess diminishes by a ratio
+          (set! sum (+ sum (* ratio (under-attack chess))))
 
-                (set! sum (- sum (* ratio (score rank))))
-                  
-           )
-
-     )
+    )
 
     (if (is-camp? country row col) (set! sum (add1 sum)))
      
