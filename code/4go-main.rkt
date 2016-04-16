@@ -74,10 +74,11 @@
 
            (when accessible
               (set! result (- (score e-rank) (score rank)))
+              (if (> result 0) (set! result 0))
               (set! quit #t) ; quit for loop
            )
          )
-               
+
       )
      )
    )
@@ -103,7 +104,7 @@
        )
 )
 
-(define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40) ) ) ; a constant
+(define ratio 0.2) ; a constant
 
 
 (define (calculate-value belong-to)
@@ -159,11 +160,11 @@
      
     )
 
-   (extra-score 3 flag-col 65)
-   (extra-score 2 2 40)
-   (extra-score 3 (- 4 flag-col) 10)  
+   (extra-score 3 flag-col 30)
+   (extra-score 2 2 10)
    (extra-score 4 (add1 flag-col) 10)
    (extra-score 4 (sub1 flag-col) 10)
+   (extra-score 3 (- 4 flag-col) 5)  
    (extra-score 1 1 3)
    (extra-score 1 3 3)
      
@@ -197,17 +198,18 @@
 
          (define accessible #f)
 
-         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col))
-                   (not (and (not (empty? d-belong-to)) (>= d-row 4)))
-             )
+;         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col))
+;                   (not (and (not (empty? d-belong-to)) (>= d-row 4)))
+;             )
 
-             (set! accessible #f)
+;             (set! accessible #f)
+        
 
-             (begin
+;             (begin
                (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
                (set! accessible (> (length move-list) 1))
-              )
-         )
+ ;             )
+ ;        )
         
 
          (define go-able   (or (not (occupied? d-country d-row d-col))
@@ -240,12 +242,12 @@
                    )
                  )
 
-
+           
               (set! value (- (+ (calculate-value belong-to)
                                 (calculate-value (right-country (right-country belong-to))))
                              (+ (calculate-value (right-country belong-to))
                                 (calculate-value (left-country belong-to)))))
-
+           
 
               (set! value (+ value (random 5)))
    
@@ -448,11 +450,18 @@
   (begin
   (occupy down 5 1 10 down 'normal)
   (occupy right 5 1 10 right 'normal)
-  (occupy down 0 0 38 down 'normal)
+  (occupy down 0 2 38 down 'normal)
   (occupy down 1 1 0 down 'normal)
-  (occupy up 4 4 40 right 'normal)
-  (occupy down 4 1 100 down 'normal)
-  (occupy right 0 0 39 right 'normal)
+  (occupy up 3 4 0 right 'normal)
+  (occupy down 4 1 35 down 'normal)
+  (occupy right 0 0 35 right 'normal)
+  (occupy right 1 0 34 right 'normal)
+  (occupy down 0 4 0 down 'normal)
+  (occupy up 0 2 33 up 'normal)
+  (occupy up 5 1 10 up 'normal)
+  (occupy up 4 1 100 up 'normal)
+  (occupy up 4 0 100 up 'normal)
+  
   )
 
   )
