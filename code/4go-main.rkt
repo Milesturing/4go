@@ -162,8 +162,8 @@
 
    (extra-score 3 flag-col 30)
    (extra-score 2 2 10)
-   (extra-score 4 (add1 flag-col) 10)
-   (extra-score 4 (sub1 flag-col) 10)
+   (extra-score 4 (add1 flag-col) 8)
+   (extra-score 4 (sub1 flag-col) 8)
    (extra-score 3 (- 4 flag-col) 5)  
    (extra-score 1 1 3)
    (extra-score 1 3 3)
