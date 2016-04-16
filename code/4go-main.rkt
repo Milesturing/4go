@@ -9,6 +9,7 @@
 ; global variables
 (define dc null) ; drawing context
 (define which-turn down) ; starting country
+(define occupied-list null) ; occupied-list is a list of (country row col rank belong-to state)
 
 (define target (make-bitmap frame-size frame-size))
 (send target load-file "chessboard.png" 'png)
@@ -50,23 +51,26 @@
 
       (get-from (e-country e-row e-col e-rank) e-chess)
 
-      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0)))
+      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1)
+                                       (and (= e-rank 0) (> (score rank) (score e-rank)))
+                                       (and (= rank 0) (> (score rank) (score e-rank)))
+                                   ) (not (= rank 100)))
 
          (define move-list (route-list occupied? e-country e-row e-col e-rank country row col))      
-
+        
          (define accessible (> (length move-list) 1))
 
          (when accessible
 
               (set! result #t)
-              (set! quit #t)
+              (set! quit #t) ; quit for loop
          )
         )
       
       )
 
    )
-  
+
    result
 
 )
@@ -88,23 +92,32 @@
        )
 )
 
+(define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40) 2) ) ; a constant
 
 (define (calculate-value belong-to)
 
-  (define all-chess (find-belong-to belong-to))
+  (define all-chess (find-belong-to belong-to)) ; all chesses belonging to this side
   (define sum 0)
 
 
-  (when (not (empty? belong-to)) 
+  (when (not (empty? belong-to)) ; if the side is not empty
  
 
-  (for* ([chess all-chess])
+  (for* ([chess all-chess]) ; for every chess in this side
 
     (get-from (country row col rank) chess)
 
     (set! sum (+ sum (score rank)))
-   
-    ;
+
+    (when (not (is-labor? rank))
+
+          (when (under-attack chess) ; if under attacked, the value of chess diminishes by a ratio
+
+                (set! sum (- sum (* ratio (score rank))))
+                  
+           )
+
+     )
 
     (if (is-camp? country row col) (set! sum (add1 sum)))
      
@@ -116,13 +129,13 @@
 
    (define flag (car flag-list))
 
-   (get-from (_ _2 flag-col) flag)
+   (get-from (_c _r flag-col) flag)
 
    (define (extra-score e-row e-col e-score)
 
      (when (occupied? belong-to e-row e-col)
 
-       (get-from (_ _2 _3 _4 which-side) (find-whole-chess belong-to e-row e-col))
+       (get-from (_cc _rr _l _k which-side) (find-whole-chess belong-to e-row e-col))
 
        (if (enemy? which-side belong-to)
 
@@ -133,9 +146,9 @@
     )
 
    (extra-score 3 flag-col 65)
-   (extra-score 4 flag-col 90)
-   (extra-score 5 (add1 flag-col) 90)
-   (extra-score 5 (sub1 flag-col) 90)
+;   (extra-score 4 flag-col 90)
+;   (extra-score 5 (add1 flag-col) 90)
+;   (extra-score 5 (sub1 flag-col) 90)
    (extra-score 2 2 40)
    (extra-score 3 (- 4 flag-col) 10)  
    (extra-score 4 (add1 flag-col) 10)
@@ -158,19 +171,18 @@
     (define value 0)
     (define max-value -10000)
     (define save-occupied null)
-    (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
 
-    (for* ([some-chess whole-list])
+    (for* ([some-chess whole-list]) ; choose all possible chesses
 
-      (get-from (s-country s-row s-col s-rank s-belong-to) some-chess)
+      (get-from (s-country s-row s-col s-rank s-belong-to) some-chess) ; s is source
       
       (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
   
-      (for* ([d-country (list middle up left down right)]
+      (for* ([d-country (list middle up left down right)] ; d is destination
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-         (get-from (_ _2 _3 d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
+         (get-from (_c _r _l d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
 
          (define accessible #f)
 
@@ -187,7 +199,7 @@
          )
         
 
-         (define goable   (or (not (occupied? d-country d-row d-col))
+         (define go-able   (or (not (occupied? d-country d-row d-col))
                           (and (occupied? d-country d-row d-col)
                                (enemy? s-belong-to d-belong-to)
                                (not (is-camp? d-country d-row d-col))
@@ -195,7 +207,7 @@
                                          (not (eq? d-rank 10))))
                               )))
 
-         (when (and accessible goable)
+         (when (and accessible go-able)
 
              (set! save-occupied occupied-list)
 
@@ -217,18 +229,11 @@
                    )
                  )
 
+
               (set! value (- (+ (calculate-value belong-to)
                                 (calculate-value (right-country (right-country belong-to))))
                              (+ (calculate-value (right-country belong-to))
                                 (calculate-value (left-country belong-to)))))
-
-           
-
-              (when (and (not (is-labor? s-rank)) (under-attack (find-whole-chess d-country d-row d-col)))
-
-                  (set! value (- value (* ratio (score s-rank))))
-
-              )
 
 
               (set! value (+ value (random 5)))
@@ -252,30 +257,197 @@
 )
 
 
-; ===================================================================
+; ====================================================
 
-(define (draw-all-chesses)
-  (for ([occupied-item occupied-list])
-    
-      (get-from (country row col rank belong-to state) occupied-item)    
-      (draw-chess dc country row col rank belong-to state)
+(define (draw-route move-list rank belong-to time)
+
+    (for* ([route move-list])
       
-    ))
+           (get-from (r-country r-row r-col) route)      
+           (delete-occupied r-country r-row r-col)
+           (occupy r-country r-row r-col rank belong-to 'picked-up)      
+           (re-draw)
+           (sleep (/ time (length move-list))) 
+           (delete-occupied r-country r-row r-col)
+     )
+  
+)
 
-(define (re-draw)
-     (send dc clear)
-     (send dc draw-bitmap target 0 0)
-     (draw-all-chesses)
-     
-     (for* ([country (list down up left right)]) ; draw some extra flag
+(define (move-to o-country o-row o-col country row col)
 
-       (draw-chess dc country 5 5 null country (if (eq? country which-turn) 'extra 'normal) )
-      ) 
+   (get-from (_c _r _l o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
+   (get-from (_cc _rr _ll rank belong-to state) (find-whole-chess country row col))
+
+   (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
+   (define accessible (> (length move-list) 1))
+
+   (when (and accessible (not (occupied? country row col)))
+
+      (draw-route move-list o-rank o-belong-to 0.7)
+
+      (occupy country row col o-rank o-belong-to 'normal)
+
+   )
+
+   (when (and accessible state (occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
+
+        (define beat? (beat-it? o-rank rank))
+        (draw-route move-list o-rank o-belong-to 0.7)
+
+        (when (> beat? -1)
+              (delete-occupied country row col)
+              (if (is-flag? rank) (delete-country belong-to))
+         )     
+
+        (if (= beat? -1)
+            (occupy country row col rank belong-to 'normal)
+        )    
+            
+        (if (= beat? 1)
+          (occupy country row col o-rank o-belong-to 'normal)
+        )  
+
+   )
+)
+
+; ====================================================
+
+(define (click-chess country-row-col)
+
+  (when country-row-col
+    
+    (get-from (country row col) country-row-col)
+    (get-from (_c _r _l rank belong-to state) (find-whole-chess country row col))
+    (get-from (o-country o-row o-col o-rank o-belong-to o-state) (find-picked-up)) ; original info
+        
+    (when (and (not o-state) (eq? belong-to which-turn) (movable? rank) (not (is-base? country row col)))
+
+        (delete-occupied country row col)
+        (occupy country row col rank belong-to 'picked-up)
+
+    )
+    
+    (when o-state
+
+      (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
+      (define accessible (> (length move-list) 1))
+      
+      (when (not accessible) 
+
+         (delete-occupied o-country o-row o-col)
+         (occupy o-country o-row o-col o-rank o-belong-to 'normal)
+
+      )
+
+      (when (and accessible (not state)) ; empty position
+
+          (draw-route move-list o-rank o-belong-to 0.1)
+
+          (occupy country row col o-rank o-belong-to 'normal)
+        
+          (go-to-next-country)
+
+      )
+
+      (when (and accessible state (enemy? o-belong-to belong-to)
+                 (not (is-camp? country row col)) ) ; fight with it!
+
+        (define beat? (beat-it? o-rank rank))
+
+        (draw-route move-list o-rank o-belong-to 0.1)
+
+        (when (> beat? -1)
+              (delete-occupied country row col)
+              (if (is-flag? rank) (delete-country belong-to))
+         )
+
+        (if (= beat? -1)
+            (occupy country row col rank belong-to 'normal)
+        )    
+
+        (when (= beat? 1)
+          (occupy country row col o-rank o-belong-to 'normal)
+        )
+      
+        (go-to-next-country)
+
+      )
+      
+    )
+    
+    (re-draw)
+
+  )
+   
+)
+
+; ====================================================================
+; assignments
+
+(define (forbidden rank country row col)
+  
+  (define forb #f)
+  (if (and (= rank 10) (not (is-base? country row col))) 
+      (set! forb #t))
+  (if (and (is-base? country row col) (not (member rank (list 10 100 33))))
+      (set! forb #t))
+  (if (and (= rank 100) (not (>= row 4)))
+      (set! forb #t))
+  (if (and (= rank 0) (= row 0))
+      (set! forb #t))
+  (if (and (= rank 100) (= row 4) (even? col)
+           (member (find-its-rank country 5 col) (list 40 39 38)))
+      (set! forb #t))
+  (if (and (= row 5) (even? col) (member rank (list 40 39 38))
+           (eq? (find-its-rank country 4 col) 100))
+      (set! forb #t))
+           
+      
+  forb
+)
+
+(define (assign-country-row-col belong-to rank)
+
+  (define country belong-to)
+  (define row null)
+  (define col null)
+  
+  (set! row (list-ref (range (row-num belong-to)) (random (row-num belong-to))))
+  (set! col (list-ref (range (col-num belong-to)) (random (col-num belong-to))))
+                               
+  (if (or (occupied? country row col) (is-camp? country row col) (forbidden rank country row col))
+       (assign-country-row-col belong-to rank) (list country row col))
+)
+
+(define (init-board)  
+  
+  (set! occupied-list null)
+  (define country null)
+
+  (if #t ; for debug
+      
+  (for* ([belong-to (list up down left right)]
+         [rank whole-rank-set])
+      
+         (get-from (country row col) (assign-country-row-col belong-to rank))
+    
+         (occupy country row col rank belong-to 'normal)
+   )  
+
+  (begin
+  (occupy down 5 1 10 down 'normal)
+  (occupy right 5 1 10 right 'normal)
+  (occupy down 0 0 38 down 'normal)
+  (occupy down 1 1 0 down 'normal)
+  (occupy up 4 4 40 right 'normal)
+  (occupy down 4 1 100 down 'normal)
+  (occupy right 0 0 39 right 'normal)
+  )
+
+  )
 )
 
 ; ===================================================================
-
-(define occupied-list null) ; occupied-list is a list of (country row col rank belong-to state)
 
 (define (occupy country row col rank belong-to state)
    (add occupied-list (list country row col rank belong-to state))   
@@ -343,70 +515,25 @@
   (null? (find-belong-to belong-to))
 )
 
-; ====================================================================
-; assignments
+; ===================================================================
 
-(define (forbidden rank country row col)
-  
-  (define forb #f)
-  (if (and (= rank 10) (not (is-base? country row col))) 
-      (set! forb #t))
-  (if (and (is-base? country row col) (not (member rank (list 10 100 33))))
-      (set! forb #t))
-  (if (and (= rank 100) (not (>= row 4)))
-      (set! forb #t))
-  (if (and (= rank 0) (= row 0))
-      (set! forb #t))
-  (if (and (= rank 100) (= row 4) (even? col)
-           (member (find-its-rank country 5 col) (list 40 39 38)))
-      (set! forb #t))
-  (if (and (= row 5) (even? col) (member rank (list 40 39 38))
-           (eq? (find-its-rank country 4 col) 100))
-      (set! forb #t))
-           
-      
-  forb
-)
-
-(define (assign-country-row-col belong-to rank)
-
-  (define country belong-to)
-  (define row null)
-  (define col null)
-  
-  (set! row (list-ref (range (row-num belong-to)) (random (row-num belong-to))))
-  (set! col (list-ref (range (col-num belong-to)) (random (col-num belong-to))))
-                               
-  (if (or (occupied? country row col) (is-camp? country row col) (forbidden rank country row col))
-       (assign-country-row-col belong-to rank) (list country row col))
-)
-
-(define (init-board)  
-  
-  (set! occupied-list null)
-  (define country null)
-
-  (if #t ; for debug
-      
-  (for* ([belong-to (list up down left right)]
-         [rank whole-rank-set])
-      
-         (get-from (country row col) (assign-country-row-col belong-to rank))
+(define (draw-all-chesses)
+  (for ([occupied-item occupied-list])
     
-         (occupy country row col rank belong-to 'normal)
-   )  
+      (get-from (country row col rank belong-to state) occupied-item)    
+      (draw-chess dc country row col rank belong-to state)
+      
+    ))
 
-  (begin
-  (occupy down 5 1 10 down 'normal)
-  (occupy right 5 1 10 right 'normal)
-  (occupy down 0 0 39 down 'normal)
-  (occupy down 1 1 0 down 'normal)
-  (occupy up 4 4 40 right 'normal)
-  (occupy down 4 1 100 down 'normal)
-  (occupy right 0 0 39 right 'normal)
-  )
+(define (re-draw)
+     (send dc clear)
+     (send dc draw-bitmap target 0 0)
+     (draw-all-chesses)
+     
+     (for* ([country (list down up left right)]) ; draw some extra flag
 
-  )
+       (draw-chess dc country 5 5 null country (if (eq? country which-turn) 'extra 'normal) )
+      ) 
 )
 
 ; ====================================================
@@ -420,136 +547,12 @@
        ; else
        (when (eq? (player which-turn) 'computer)
            (re-draw)
-           (sleep 0.7)
+;           (sleep 0.7)
            (computer-run which-turn)
            (go-to-next-country)
        )          
    )    
 )  
-
-; ====================================================
-
-(define (draw-route move-list rank belong-to time)
-
-    (for* ([route move-list])
-      
-           (get-from (r-country r-row r-col) route)      
-           (delete-occupied r-country r-row r-col)
-           (occupy r-country r-row r-col rank belong-to 'picked-up)      
-           (re-draw)
-           (sleep (/ time (length move-list))) ; time is usually set to 0.4
-           (delete-occupied r-country r-row r-col)
-     )
-  
-)
-
-(define (move-to o-country o-row o-col country row col)
-
-   (get-from (_ _2 _3 o-rank o-belong-to o-state) (find-whole-chess o-country o-row o-col))
-   (get-from (_4 _5 _6 rank belong-to state) (find-whole-chess country row col))
-
-   (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
-   (define accessible (> (length move-list) 1))
-
-   (when (and accessible (not (occupied? country row col)))
-
-      (draw-route move-list o-rank o-belong-to 0.7)
-
-      (occupy country row col o-rank o-belong-to 'normal)
-
-   )
-
-   (when (and accessible state (occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
-
-        (define beat? (beat-it? o-rank rank))
-        (draw-route move-list o-rank o-belong-to 0.7)
-
-        (when (> beat? -1)
-              (delete-occupied country row col)
-              (if (is-flag? rank) (delete-country belong-to))
-         )     
-
-        (if (= beat? -1)
-            (occupy country row col rank belong-to 'normal)
-        )    
-            
-        (if (= beat? 1)
-          (occupy country row col o-rank o-belong-to 'normal)
-        )  
-
-   )
-)
-
-; ====================================================
-
-(define (click-chess country-row-col)
-
-  (when country-row-col
-    
-    (get-from (country row col) country-row-col)
-    (get-from (_ _2 _3 rank belong-to state) (find-whole-chess country row col))
-    (get-from (o-country o-row o-col o-rank o-belong-to o-state) (find-picked-up)) ; original info
-        
-    (when (and (not o-state) (eq? belong-to which-turn) (movable? rank) (not (is-base? country row col)))
-
-        (delete-occupied country row col)
-        (occupy country row col rank belong-to 'picked-up)
-
-    )
-    
-    (when o-state
-
-      (define move-list (route-list occupied? o-country o-row o-col o-rank country row col))      
-      (define accessible (> (length move-list) 1))
-      
-      (when (not accessible) 
-
-         (delete-occupied o-country o-row o-col)
-         (occupy o-country o-row o-col o-rank o-belong-to 'normal)
-
-      )
-
-      (when (and accessible (not state)) ; empty position
-
-          (draw-route move-list o-rank o-belong-to 0.1)
-
-          (occupy country row col o-rank o-belong-to 'normal)
-        
-          (go-to-next-country)
-
-      )
-
-      (when (and accessible state (enemy? o-belong-to belong-to)
-                 (not (is-camp? country row col)) ) ; fight with it!
-
-        (define beat? (beat-it? o-rank rank))
-
-        (draw-route move-list o-rank o-belong-to 0.1)
-
-        (when (> beat? -1)
-              (delete-occupied country row col)
-              (if (is-flag? rank) (delete-country belong-to))
-         )
-
-        (if (= beat? -1)
-            (occupy country row col rank belong-to 'normal)
-        )    
-
-        (when (= beat? 1)
-          (occupy country row col o-rank o-belong-to 'normal)
-        )
-      
-        (go-to-next-country)
-
-      )
-      
-    )
-    
-    (re-draw)
-
-  )
-   
-)
 
 ; ====================================================
 ; draw the animation
