@@ -145,6 +145,12 @@
 
        (get-from (_cc _rr _l _k which-side) (find-whole-chess belong-to e-row e-col))
 
+       (if (eq? which-side belong-to)
+
+           (set! sum (+ sum (/ e-score 5)))
+
+       )
+
        (if (enemy? which-side belong-to)
 
            (set! sum (- sum e-score))
@@ -154,9 +160,6 @@
     )
 
    (extra-score 3 flag-col 65)
-;   (extra-score 4 flag-col 90)
-;   (extra-score 5 (add1 flag-col) 90)
-;   (extra-score 5 (sub1 flag-col) 90)
    (extra-score 2 2 40)
    (extra-score 3 (- 4 flag-col) 10)  
    (extra-score 4 (add1 flag-col) 10)
