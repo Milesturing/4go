@@ -106,6 +106,36 @@
 
 (define ratio 0.2) ; a constant
 
+(define (position-value row col flag-col)
+
+  (if (= flag-col 3)
+ 
+      (position-value row (- 4 col) 1)
+
+      ; else flag-col = 1
+
+      (match (list row col)
+        
+        ([== (list 5 0)] 5)
+        ([== (list 5 1)] 0)
+        ([== (list 5 2)] 5)
+        ([== (list 5 3)] 0)
+        ([== (list 4 0)] 5)
+        ([== (list 4 1)] 5)
+        ([== (list 4 2)] 5)
+        ([== (list 4 3)] 2)
+        ([== (list 4 4)] 2)
+        ([== (list 3 1)] 5)
+        ([== (list 3 2)] 2)
+        ([== (list 3 3)] 2)
+        ([== (list 2 2)] 3)
+        (else 1)
+
+      )
+
+  )      
+)
+
 
 (define (calculate-value belong-to)
 
@@ -127,46 +157,47 @@
           (set! sum (+ sum (* ratio (under-attack chess))))
 
     )
-
-    (if (is-camp? country row col) (set! sum (add1 sum)))
      
    ) ; for
+
+   )
+
+  sum
+
+)
+
+;
+
+(define (calculate-position-value belong-to)
+
+  (define all-chess (find-belong-to belong-to)) ; all chesses belonging to this side
+  (define sum 0)
+
+  (when (not (empty? belong-to)) ; if the side is not empty
+ 
 
    (define flag-list (filter (same-rank? 10) all-chess))
 
    (when (not (null? flag-list))
 
-   (define flag (car flag-list))
+     (define flag (car flag-list))
 
-   (get-from (_c _r flag-col) flag)
+     (get-from (_c _r flag-col) flag)
 
-   (define (extra-score e-row e-col e-score)
+     (for* ([m-country (list belong-to)]
+            [m-row (range (row-num m-country))]
+            [m-col (range (col-num m-country))])
+          
+      (get-from (_cc _rr _ll m-rank m-belong-to) (find-whole-chess m-country m-row m-col))
 
-     (when (occupied? belong-to e-row e-col)
+      (when m-belong-to
 
-       (get-from (_cc _rr _l _k which-side) (find-whole-chess belong-to e-row e-col))
+        (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
-       (if (eq? which-side belong-to)
+        (set! sum (+ sum (* sign 1/10 (score m-rank) (position-value m-row m-col flag-col))))
 
-           (set! sum (+ sum (/ e-score 5)))
-
-       )
-
-       (if (enemy? which-side belong-to)
-
-           (set! sum (- sum e-score))
-           
-       ))
-     
-    )
-
-   (extra-score 3 flag-col 30)
-   (extra-score 2 2 10)
-   (extra-score 4 (add1 flag-col) 8)
-   (extra-score 4 (sub1 flag-col) 8)
-   (extra-score 3 (- 4 flag-col) 5)  
-   (extra-score 1 1 3)
-   (extra-score 1 3 3)
+      )
+     )
      
     )
     )
@@ -196,20 +227,9 @@
 
          (get-from (_c _r _l d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
 
-         (define accessible #f)
 
-;         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col))
-;                   (not (and (not (empty? d-belong-to)) (>= d-row 4)))
-;             )
-
-;             (set! accessible #f)
-        
-
-;             (begin
-               (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
-               (set! accessible (> (length move-list) 1))
- ;             )
- ;        )
+         (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
+         (define accessible (> (length move-list) 1))
         
 
          (define go-able   (or (not (occupied? d-country d-row d-col))
@@ -244,6 +264,7 @@
 
            
               (set! value (- (+ (calculate-value belong-to)
+                                (calculate-position-value belong-to)
                                 (calculate-value (right-country (right-country belong-to))))
                              (+ (calculate-value (right-country belong-to))
                                 (calculate-value (left-country belong-to)))))
@@ -409,9 +430,9 @@
   (if (and (= rank 0) (= row 0))
       (set! forb #t))
   (if (and (= rank 100) (= row 4) (even? col)
-           (member (find-its-rank country 5 col) (list 40 39 38)))
+           (member (find-its-rank country 5 col) (list 40 39 38 0)))
       (set! forb #t))
-  (if (and (= row 5) (even? col) (member rank (list 40 39 38))
+  (if (and (= row 5) (even? col) (member rank (list 40 39 38 0))
            (eq? (find-its-rank country 4 col) 100))
       (set! forb #t))
            
