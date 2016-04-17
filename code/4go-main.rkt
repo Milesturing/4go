@@ -128,7 +128,7 @@
         ([== (list 3 1)] 5)
         ([== (list 3 2)] 2)
         ([== (list 3 3)] 2)
-        ([== (list 2 2)] 3)
+        ([== (list 2 2)] 4)
         (else 1)
 
       )
@@ -187,17 +187,20 @@
      (for* ([m-country (list belong-to)]
             [m-row (range (row-num m-country))]
             [m-col (range (col-num m-country))])
-          
-      (get-from (_cc _rr _ll m-rank m-belong-to) (find-whole-chess m-country m-row m-col))
 
-      (when m-belong-to
+      (when (occupied? m-country m-row m-col)
+        
+        (get-from (_cc _rr _ll m-rank m-belong-to) (find-whole-chess m-country m-row m-col))
 
-        (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
+        (when m-belong-to
 
-        (set! sum (+ sum (* sign 1/10 (score m-rank) (position-value m-row m-col flag-col))))
+          (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
+          (set! sum (+ sum (* sign 1/10 (score m-rank) (position-value m-row m-col flag-col))))
+        )
+        
       )
-     )
+     ) ; for
      
     )
     )
