@@ -87,6 +87,7 @@
 
 )
 
+
 (define (score rank)
   
       (match rank
@@ -101,6 +102,20 @@
         ([== 30] 6)
         ([== 100] 3)
         (else    2)
+       )
+)
+
+(define (position-score rank)
+  
+      (match rank
+        ([== 40] 30)
+        ([== 39] 25)
+        ([== 38] 20)
+        ([== 37] 15)
+        ([== 36] 10)
+        ([== 35] 8)
+        ([== 0]  22)
+        (else    5)
        )
 )
 
@@ -196,7 +211,7 @@
 
           (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
-          (set! sum (+ sum (* sign 1/10 (score m-rank) (position-value m-row m-col flag-col))))
+          (set! sum (+ sum (* sign 1/10 (position-score m-rank) (position-value m-row m-col flag-col))))
         )
         
       )
