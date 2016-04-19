@@ -119,8 +119,6 @@
        )
 )
 
-(define ratio 0.2) ; a constant
-
 (define (position-value row col flag-col)
 
   (if (= flag-col 3)
@@ -151,6 +149,7 @@
   )      
 )
 
+(define ratio 0.3) ; a constant
 
 (define (calculate-value belong-to)
 
@@ -199,27 +198,26 @@
 
      (get-from (_c _r flag-col) flag)
 
-     (for* ([m-country (list belong-to)]
-            [m-row (range (row-num m-country))]
-            [m-col (range (col-num m-country))])
+     (define my-all-chess (find-country belong-to))
 
-      (when (occupied? m-country m-row m-col)
-        
-        (get-from (_cc _rr _ll m-rank m-belong-to) (find-whole-chess m-country m-row m-col))
+     (for* ([my-chess my-all-chess])
 
+        (get-from (_cc m-row m-col m-rank m-belong-to) my-chess)
+
+       
         (when m-belong-to
 
           (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
           (set! sum (+ sum (* sign 1/10 (position-score m-rank) (position-value m-row m-col flag-col))))
+
         )
-        
-      )
+      
      ) ; for
      
     )
     )
-  
+
    sum
 
 )
@@ -245,10 +243,19 @@
 
          (get-from (_c _r _l d-rank d-belong-to) (find-whole-chess d-country d-row d-col))
 
+         (define accessible #f)
 
-         (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
-         (define accessible (> (length move-list) 1))
-        
+         (if (and (is-labor? s-rank) (not (occupied? d-country d-row d-col)) (not (>= d-row 4)))
+
+             (set! accessible #f)
+
+             ; else
+
+             (begin
+               (define move-list (route-list occupied? s-country s-row s-col s-rank d-country d-row d-col))
+               (set! accessible (> (length move-list) 1))
+             )
+         )
 
          (define go-able   (or (not (occupied? d-country d-row d-col))
                           (and (occupied? d-country d-row d-col)
@@ -512,6 +519,11 @@
    (add occupied-list (list country row col rank belong-to state))   
 )
 
+(define (same-country? country)
+  (lambda (lst)
+     (eq? (first lst) country))
+)
+
 (define (same-country-row-col? country row col)
   (lambda (lst)
      (and (eq? (first lst) country)
@@ -541,6 +553,13 @@
       ) occupied-list)
 )
 
+(define (find-country country)
+
+     (filter
+       (same-country? country)
+      occupied-list)
+)
+  
 (define (find-whole-chess country row col)
 
      (findf
