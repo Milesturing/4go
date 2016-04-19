@@ -149,7 +149,7 @@
   )      
 )
 
-(define ratio 0.3) ; a constant
+(define ratio 0.35) ; a constant
 
 (define (calculate-value belong-to)
 
