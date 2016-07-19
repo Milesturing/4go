@@ -6,10 +6,11 @@
          up left down right middle lsize rsize frame-size
          blue-pen red-pen white-pen blue-dashed-pen 
          my-font get-top-left-corner get-size-xy valid?
-         left-country right-country row-num col-num
+         left-country right-country row-num col-num 
          coordinatex is-camp? is-base? not-middle? on-rail?
          movable? is-labor? is-flag? beat-it? ally? enemy?
-         draw-chess whole-rank-set
+         draw-chess whole-rank-set rank-code
+
 )
  
 ; =================================
@@ -224,11 +225,10 @@
   ))
 
 
-(define (draw-chess dc country row col rank belong-to state) ; dc is the device
+(define (draw-chess dc country row col code belong-to state) ; dc is the device
   
    (let ([xy (get-top-left-corner country row col)]
           [ab (get-size-xy country)] 
-          [code (rank-code rank)]
           [iota 0.1]) ; iota is a small offset
 
     (define color (chess-color belong-to))
@@ -248,4 +248,4 @@
      ) ; show text
 ))
 
-; ===================================================================    
+; ===================================================================

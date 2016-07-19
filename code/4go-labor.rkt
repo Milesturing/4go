@@ -45,10 +45,10 @@
         
 ;=================================================================================================  
   
-(define (labor-fly occupied? country row col country2 row2 col2) ; successful, do not touch it
+(define (labor-fly board-occupied? country row col country2 row2 col2) ; successful, do not touch it
 ; if the chess is a "labor", on the rail assumed
 ; a very hard to code module, requires lots of endeavor
-  
+    
   (define (search-next-step fly-route-list)
     
     (define chosen (list (list country row col)))
@@ -70,7 +70,7 @@
            (for* ([next-pos (apply neighbours-on-rail final-pos)])
                (set! new-route (append route (list next-pos)))
             ; else if
-              (if (or (and (apply occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
+              (if (or (and (apply board-occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
                        (member next-pos route)) ; have to ensure the route does not pass the same place twice
                null
                (set! new-list (append new-list (list new-route)))

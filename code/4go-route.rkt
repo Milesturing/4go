@@ -2,7 +2,7 @@
 
 (require "4go-def.rkt" "4go-labor.rkt")
 
-(provide route-list) ; (route-list occupied? country row col rank country2 row2 col2)
+(provide route-list) ; (route-list board-occupied? country row col rank country2 row2 col2)
  
 ; route-list modules
 ;=================================================================================================  
@@ -19,12 +19,13 @@
 
 ;================================================================================================= 
 
-(define (route-list occupied? country row col rank country2 row2 col2) ; rank = 30 to check if it is labor
+(define (route-list board-occupied? country row col rank country2 row2 col2) ; rank = 30 to check if it is labor
   ; move from one position to another position, according to current states of the board
   ; if somewhere is blocked, the move is not allowed, returns original position of length 1
   
   ; if the move is successful, returns the list of route, and prepare to move to or "fight with" the chess 
   ; in destination.
+  
   (define result (list (list country row col)))
   ; 
   (if (and (eq? country country2)
@@ -37,7 +38,7 @@
   (if (and (on-rail? country row col) (on-rail? country2 row2 col2))
      (set! result
      (if (is-labor? rank) ; is labor
-              (labor-fly occupied? country row col country2 row2 col2)        
+              (labor-fly board-occupied? country row col country2 row2 col2)        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
                        [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]
@@ -57,13 +58,13 @@
                                  [(and (eq? country left)    (= row2 (/ col 2))) (append (direct-row country row 0 col) (direct-col middle row2 0 col2))]
                                  [(and (eq? country right)  (= row2 (- 2 (/ col 2)))) (append (direct-row country row 0 col) (direct-col middle row2 2 col2))]
                                  [else null])]
-                      [(and (eq? country middle) (not-middle? country2)) (reverse (route-list occupied? country2 row2 col2 rank country row col))]
+                      [(and (eq? country middle) (not-middle? country2)) (reverse (route-list board-occupied? country2 row2 col2 rank country row col))]
                       [else null])
      ))
      )
   ; if blocked, set it to one position
   (if (> (length result) 2)
-      (if  (eval (cons 'or (map (lambda (x) (apply occupied? x)) (drop-right (cdr result) 1)) )) 
+      (if  (eval (cons 'or (map (lambda (x) (apply board-occupied? x)) (drop-right (cdr result) 1)) )) 
           (set! result null) 
       )
    )    
