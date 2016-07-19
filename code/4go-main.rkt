@@ -255,14 +255,19 @@
 
 (define (computer-run belong-to strategy)
 
-   (cond [(eq? strategy 'strategy1)
-          (strategy1 board belong-to move-to)]
+  (define the-move
+     
+     (cond [(eq? strategy 'strategy1)
+            (strategy1 board belong-to)]
 
-         ; may add more strategies here
+           ; may add more strategies here
          
-         [else
-          (error "No such strategy!")]
-   )      
+           [else
+            (error "No such strategy!")]
+     )
+  )
+
+  (apply move-to the-move)
 )  
 
 ; ====================================================

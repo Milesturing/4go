@@ -207,7 +207,7 @@
 ; ====================================================
 
 
-(define (strategy1 board belong-to move-to)
+(define (strategy1 board belong-to)
 
     (define whole-list (send board find-belong-to belong-to))
     (define one-move null)
@@ -296,7 +296,7 @@
     ))
 
 
-    (apply move-to one-move)
+    one-move
 
   
 )
