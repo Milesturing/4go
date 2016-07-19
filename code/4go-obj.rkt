@@ -107,7 +107,7 @@
              (filter-not (same-belong-to? belong-to) occupied-list))
     )
         
-    (define/public (empty? belong-to)
+    (define/public (is-empty? belong-to)
         (null? (find-belong-to belong-to))
     )
 

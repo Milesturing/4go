@@ -6,7 +6,7 @@
 (require "4go-def.rkt" "4go-utils.rkt"
          "4go-obj.rkt" "4go-route.rkt")
 
-(require "4go-str1.rkt") ; load strategies
+(require "4go-str0.rkt" "4go-str1.rkt") ; load strategies
 
 ; ===================================================================
 ; global variables
@@ -35,6 +35,7 @@
 (define (player-name player)
 
   (match player
+    [(== 'strategy0) "ST0"]
     [(== 'strategy1) "ST1"]
     [(== 'human) "人类"]
     [else null]
@@ -257,7 +258,10 @@
 
   (define the-move
      
-     (cond [(eq? strategy 'strategy1)
+     (cond [(eq? strategy 'strategy0)
+            (strategy0 board belong-to)]
+
+           [(eq? strategy 'strategy1)
             (strategy1 board belong-to)]
 
            ; may add more strategies here
@@ -276,7 +280,7 @@
 
   (set! which-turn (right-country which-turn))
 
-   (if (send board empty? which-turn)
+   (if (send board is-empty? which-turn)
        (go-to-next-country)
        ; else
        (unless (eq? (player which-turn) 'human)

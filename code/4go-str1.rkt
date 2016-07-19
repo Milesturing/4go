@@ -140,7 +140,7 @@
   (define sum 0)
 
 
-  (when (not (empty? belong-to)) ; if the side is not empty
+  (when (not (send board is-empty? belong-to)) ; if the side is not empty
  
 
   (for* ([chess all-chess]) ; for every chess in this side
@@ -170,7 +170,7 @@
   (define all-chess (send board find-belong-to belong-to)) ; all chesses belonging to this side
   (define sum 0)
 
-  (when (not (send board empty? belong-to)) ; if the side is not empty
+  (when (not (send board is-empty? belong-to)) ; if the side is not empty
  
    (define flag-list (filter (send board same-rank? 10) all-chess))
 
