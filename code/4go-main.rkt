@@ -80,15 +80,15 @@
 
 (define (move-to o-country o-row o-col country row col)
 
+   (define (board-occupied? x y z) (send board occupied? x y z)) 
+
    (get-from (_c _r _l o-rank o-belong-to o-state) (send board find-whole-chess o-country o-row o-col))
    (get-from (_cc _rr _ll rank belong-to state) (send board find-whole-chess country row col))
 
-   (define (board-occupied? x y z) (send board occupied? x y z))
-  
    (define move-list (route-list board-occupied? o-country o-row o-col o-rank country row col))      
    (define accessible (> (length move-list) 1))
 
-   (when (and accessible (not (send board occupied? country row col)))
+   (when (and accessible (not (board-occupied? country row col)))
 
       (draw-route move-list o-rank o-belong-to 0.7)
 
@@ -210,8 +210,7 @@
   (if (and (= row 5) (even? col) (member rank (list 40 39 38 0))
            (eq? (send board find-its-rank country 4 col) 100))
       (set! forb #t))
-           
-      
+                 
   forb
 )
 
