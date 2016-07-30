@@ -45,24 +45,6 @@
 
 ; ====================================================
 
-(define (re-draw)
-
-        (send dc clear)
-        (send dc draw-bitmap target 0 0)
-        (send board draw-all-chesses dc)
-     
-        (for* ([country (list down up left right)]) ; draw some extra flags
-
-              (if (eq? country which-turn)
-                  (draw-chess dc country 5 5 "" country 'extra)
-               ; else
-                  (draw-chess dc country 5 5 (player-name (player country)) country 'normal)
-              )
-        ) 
-)
-
-; ====================================================
-
 (define (computer-run belong-to strategy)
 
   (define the-move
@@ -80,12 +62,30 @@
      )
   )
 
-  (when (not (null? the-move))
+  (unless (null? the-move)
     
       (apply move-to the-move)
     
   )  
 )  
+
+; ====================================================
+
+(define (re-draw)
+
+        (send dc clear)
+        (send dc draw-bitmap target 0 0)
+        (send board draw-all-chesses dc)
+     
+        (for* ([country (list down up left right)]) ; draw some extra flags
+
+              (if (eq? country which-turn)
+                  (draw-chess dc country 5 5 "" country 'extra)
+               ; else
+                  (draw-chess dc country 5 5 (player-name (player country)) country 'normal)
+              )
+        ) 
+)
 
 ; ====================================================
 
@@ -156,6 +156,7 @@
 )
 
 ; ====================================================
+
 (define (click-chess country-row-col)
 
   (when country-row-col
@@ -171,7 +172,6 @@
          (click-chess0 country-row-col)
 
      )
-
   )
 
 )
@@ -179,6 +179,9 @@
 ; ====================================================
 
 (define (click-chess0 country-row-col)
+
+  
+  (when country-row-col   
     
     (get-from (country row col) country-row-col)
     (get-from (_c _r _l rank belong-to state) (send board find-whole-chess country row col))
@@ -242,7 +245,8 @@
     )
     
     (re-draw)
-   
+
+  )
 )
 
 ; ====================================================================
