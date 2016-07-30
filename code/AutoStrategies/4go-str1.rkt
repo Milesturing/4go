@@ -81,8 +81,8 @@
         ([== 37] 10)
         ([== 36] 4)
         ([== 35] 3)
-        ([== 0]  24)
-        ([== 30] 8)
+        ([== 0]  23)
+        ([== 30] 7)
         ([== 100] 3)
         (else    2)
        )
@@ -188,7 +188,7 @@
 
           (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
-          (set! sum (+ sum (* sign 1/15 (position-score m-rank) (position-value m-row m-col flag-col))))
+          (set! sum (+ sum (* sign 1/12 (position-score m-rank) (position-value m-row m-col flag-col))))
 
         )
       

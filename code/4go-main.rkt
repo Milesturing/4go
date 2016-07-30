@@ -137,38 +137,7 @@
 
 ; ====================================================
 
-(define (pop-menu country)
-
-
-  null ; pop up some menu
-
-  
-)
-
-; ====================================================
-
 (define (click-chess country-row-col)
-
-  (when country-row-col
-
-     (get-from (country row col) country-row-col)
-
-     (if (and (= row 5) (= col 5)) ; extra flag clicked
-
-         (pop-menu country)
-
-      ; else   
-
-         (click-chess0 country-row-col)
-
-     )
-  )
-
-)
-
-; ====================================================
-
-(define (click-chess0 country-row-col)
 
   
   (when country-row-col   

@@ -25,9 +25,7 @@
     
      (for* ([country (list up left down right middle)]
               [row (range (row-num country))]
-              [col (range (if (and (not (eq? country middle)) (= row 5))
-                              6
-                              (col-num country)))]) ; here to include the case for extra flag: row = 5, col = 5
+              [col (range (col-num country))]) ; here can include the case for extra flag: row = col = 5, country /= middle
        #:break quit
      (let ([xy (get-top-left-corner country row col)]
             [ab (get-size-xy country)])
