@@ -6,7 +6,7 @@
 (require "4go-def.rkt" "4go-utils.rkt"
          "4go-obj.rkt" "4go-route.rkt")
 
-(require "4go-str0.rkt" "4go-str1.rkt") ; load strategies
+(require "Strategies/4go-str0.rkt" "Strategies/4go-str1.rkt") ; load strategies
 
 ; ===================================================================
 ; global variables
@@ -83,6 +83,7 @@
    (define (board-occupied? x y z) (send board occupied? x y z)) 
 
    (get-from (_c _r _l o-rank o-belong-to o-state) (send board find-whole-chess o-country o-row o-col))
+  
    (get-from (_cc _rr _ll rank belong-to state) (send board find-whole-chess country row col))
 
    (define move-list (route-list board-occupied? o-country o-row o-col o-rank country row col))      
@@ -96,7 +97,7 @@
 
    )
 
-   (when (and accessible state (send board occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
+   (when (and accessible state (board-occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
 
         (define beat? (beat-it? o-rank rank))
         (draw-route move-list o-rank o-belong-to 0.7)

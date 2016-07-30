@@ -1,8 +1,8 @@
 #lang racket
 
-(require "4go-def.rkt"
-         "4go-route.rkt"
-         "4go-obj.rkt"
+(require "../4go-def.rkt"
+         "../4go-route.rkt"
+         "../4go-obj.rkt"
 )
 
 (provide strategy0) ; strategy

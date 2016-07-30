@@ -6,6 +6,51 @@
 
 ; ===================================================================
 
+(define one-chess%
+
+  (class object%
+
+    (super-new)
+    (init-field [country null])
+    (init-field [row null])
+    (init-field [col null])
+    (init-field [rank null])
+    (init-field [belong-to null])
+    (init-field [state null])
+
+    (define/public (get-country-row-col)
+      (list country row col)
+    )
+
+    (define/public (get-rank)
+      rank
+    )
+
+    (define/public (get-belong-to)
+      belong-to
+    )
+
+    (define/public (get-state)
+      state
+    )
+
+    (define/public (get-rest)
+      (list rank belong-to state)
+    )
+    
+    (define/public (get-full)
+      (list country row col rank belong-to state)
+    )
+
+  )
+  
+)
+
+     
+
+
+; ===================================================================
+
 (define chess-board% ; define a new class
   
   (class object%
@@ -17,8 +62,8 @@
          occupied-list
     )
 
-    (define/public (set-occupied-list s)
-         (set! occupied-list s)
+    (define/public (set-occupied-list x)
+         (set! occupied-list x)
     )
 
     (define/public (draw-all-chesses dc)      
