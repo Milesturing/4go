@@ -6,7 +6,8 @@
 (require "4go-def.rkt" "4go-utils.rkt"
          "4go-obj.rkt" "4go-route.rkt")
 
-(require "Strategies/4go-str0.rkt" "Strategies/4go-str1.rkt") ; load strategies
+(require "AutoStrategies/4go-str0.rkt"
+         "AutoStrategies/4go-str1.rkt") ; load strategies
 
 ; ===================================================================
 ; global variables
