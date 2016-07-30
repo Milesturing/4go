@@ -63,6 +63,32 @@
 
 ; ====================================================
 
+(define (computer-run belong-to strategy)
+
+  (define the-move
+     
+     (cond [(eq? strategy 'strategy0)
+            (strategy0 board belong-to)]
+
+           [(eq? strategy 'strategy1)
+            (strategy1 board belong-to)]
+
+           ; may add more strategies here
+         
+           [else
+            (error "No such strategy!")]
+     )
+  )
+
+  (when (not (null? the-move))
+    
+      (apply move-to the-move)
+    
+  )  
+)  
+
+; ====================================================
+
 (define (draw-route move-list rank belong-to time)
 
     (for* ([route move-list])
@@ -121,9 +147,38 @@
 
 ; ====================================================
 
+(define (pop-menu country)
+
+
+  null ; pop up some menu
+
+  
+)
+
+; ====================================================
 (define (click-chess country-row-col)
 
   (when country-row-col
+
+     (get-from (country row col) country-row-col)
+
+     (if (and (= row 5) (= col 5)) ; extra flag clicked
+
+         (pop-menu country)
+
+      ; else   
+
+         (click-chess0 country-row-col)
+
+     )
+
+  )
+
+)
+
+; ====================================================
+
+(define (click-chess0 country-row-col)
     
     (get-from (country row col) country-row-col)
     (get-from (_c _r _l rank belong-to state) (send board find-whole-chess country row col))
@@ -187,8 +242,6 @@
     )
     
     (re-draw)
-
-  )
    
 )
 
@@ -256,31 +309,6 @@
   )
 )
 
-; ====================================================
-
-(define (computer-run belong-to strategy)
-
-  (define the-move
-     
-     (cond [(eq? strategy 'strategy0)
-            (strategy0 board belong-to)]
-
-           [(eq? strategy 'strategy1)
-            (strategy1 board belong-to)]
-
-           ; may add more strategies here
-         
-           [else
-            (error "No such strategy!")]
-     )
-  )
-
-  (when (not (null? the-move))
-    
-      (apply move-to the-move)
-    
-  )  
-)  
 
 ; ====================================================
 
