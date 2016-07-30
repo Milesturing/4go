@@ -234,7 +234,7 @@
   (send board set-occupied-list null)
   (define country null)
 
-  (if #f ; for debug
+  (if #t ; for debug
       
   (for* ([belong-to (list up down left right)]
          [rank whole-rank-set])
