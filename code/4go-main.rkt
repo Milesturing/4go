@@ -244,8 +244,11 @@
    )  
 
   (begin ; for debug only
-  (send board occupy down 4 1 37 down 'normal)
-  (send board occupy right 4 1 39 right 'normal)
+  (send board occupy down 4 1 39 down 'normal)
+  (send board occupy right 4 1 30 right 'normal)
+  (send board occupy up 4 1 38 up 'normal)
+  (send board occupy left 4 1 30 left 'normal)
+  
   
   )
 
