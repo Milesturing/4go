@@ -38,7 +38,8 @@
   (if (and (on-rail? country row col) (on-rail? country2 row2 col2))
      (set! result
      (if (is-labor? rank) ; is labor
-              (labor-fly board-occupied? country row col country2 row2 col2)        
+              (labor-fly board-occupied? country row col country2 row2 col2)
+                         ; else        
               (cond [(and (eq? country country2) (or (= row 0) (= row 4)) (= row2 row)) (direct-col country row col col2)]
                        [(and (eq? country country2) (or (= col 0) (= col 4)) (= col2 col)) (direct-row country row row2 col)]
                        [(and (eq? country middle) (eq? country2 middle) (= row2 row)) (direct-col middle row col col2)]

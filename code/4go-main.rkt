@@ -234,7 +234,7 @@
   (send board set-occupied-list null)
   (define country null)
 
-  (if #t ; for debug
+  (if #f ; for debug
       
   (for* ([belong-to (list up down left right)]
          [rank whole-rank-set])
@@ -245,7 +245,7 @@
    )  
 
   (begin ; for debug only
-  (send board occupy down 4 1 39 down 'normal)
+  (send board occupy down 4 1 30 down 'normal)
   (send board occupy right 4 1 30 right 'normal)
   (send board occupy up 4 1 38 up 'normal)
   (send board occupy left 4 1 30 left 'normal)
@@ -275,7 +275,11 @@
      )
   )
 
-  (apply move-to the-move)
+  (when (not (null? the-move))
+    
+      (apply move-to the-move)
+    
+  )  
 )  
 
 ; ====================================================

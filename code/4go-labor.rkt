@@ -4,10 +4,11 @@
 
 (provide labor-fly)
 
-; labor-fly modules
+; labor-fly modules : successful, do not touch it
 ;=================================================================================================  
  
 (define (neighbours-on-rail country row col) ; successful, do not touch it
+
     (define they null)
     (define neighbours 
          (list (list country (add1 row) col)
@@ -41,41 +42,54 @@
                               neighbours))
     )
    they
+
+
 )  
         
 ;=================================================================================================  
   
-(define (labor-fly board-occupied? country row col country2 row2 col2) ; successful, do not touch it
+(define (labor-fly board-occupied? country row col country2 row2 col2)
 ; if the chess is a "labor", on the rail assumed
 ; a very hard to code module, requires lots of endeavor
-    
+  
+  
   (define (search-next-step fly-route-list)
     
     (define chosen (list (list country row col)))
-    (define new-route null)
     (define new-list null)
     (define final-pos null)
-    (define quit #f)  
+    (define quit #f)
     
-    (for* ([route fly-route-list])
+
+    (define passed-positions ; key variable to become faster!
+      (remove-duplicates (apply append fly-route-list))
+    )      
+     
+    (for ([route fly-route-list])
      #:break quit
+
         (set! final-pos (last route))
 
         (if (equal? final-pos (list country2 row2 col2))
+
            (begin
                (set! chosen route)
                (set! quit #t)
            )
            ; else
-           (for* ([next-pos (apply neighbours-on-rail final-pos)])
-               (set! new-route (append route (list next-pos)))
-            ; else if
-              (if (or (and (apply board-occupied? next-pos) (not (equal? next-pos (list country2 row2 col2)))) 
-                       (member next-pos route)) ; have to ensure the route does not pass the same place twice
-               null
-               (set! new-list (append new-list (list new-route)))
-           )))
-     )
+
+           (for ([next-pos (apply neighbours-on-rail final-pos)])
+                (when (and (or (not (apply board-occupied? next-pos))
+                               (equal? next-pos (list country2 row2 col2))) 
+                           (not (member next-pos passed-positions)) ; have to ensure the route does not pass the same place twice
+                      )
+                (begin
+                     (define new-route (append route (list next-pos)))
+                     (set! new-list (append new-list (list new-route)))
+                ))
+           )
+
+     ))
     
   (if quit
        chosen 
@@ -85,8 +99,12 @@
   ))
   
   (if (and (on-rail? country row col) (on-rail? country2 row2 col2)) ; to check if on the rail
+       ; we only consider the case when both source and destination are on the rail, otherwise (route-list) can handle it
+      
        (search-next-step (list (list (list country row col))))
-   )    
+
+  )
+ 
 ) 
 
 ;=================================================================================================  
