@@ -7,7 +7,8 @@
          "4go-obj.rkt" "4go-route.rkt")
 
 (require "AutoStrategies/4go-str0.rkt"
-         "AutoStrategies/4go-str1.rkt") ; load strategies
+         "AutoStrategies/4go-str1.rkt"
+        ) ; load strategies
 
 ; ===================================================================
 ; global variables
@@ -38,36 +39,12 @@
   (match player
     [(== 'strategy0) "ST0"]
     [(== 'strategy1) "ST1"]
+    [(== 'strategy2) "ST2"]
+    [(== 'test) "TST"]
     [(== 'human) "人类"]
     [else null]
    )
 )
-
-; ====================================================
-
-(define (computer-run belong-to strategy)
-
-  (define the-move
-     
-     (cond [(eq? strategy 'strategy0)
-            (strategy0 board belong-to)]
-
-           [(eq? strategy 'strategy1)
-            (strategy1 board belong-to)]
-
-           ; may add more strategies here
-         
-           [else
-            (error "No such strategy!")]
-     )
-  )
-
-  (unless (null? the-move)
-    
-      (apply move-to the-move)
-    
-  )  
-)  
 
 ; ====================================================
 
@@ -144,6 +121,19 @@
 
    )
 )
+
+; ====================================================
+
+(define (computer-run belong-to strategy)
+
+  (define the-move
+
+    (eval (list strategy board belong-to))
+     
+  )
+
+  (unless (null? the-move) (apply move-to the-move))  
+)  
 
 ; ====================================================
 

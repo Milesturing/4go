@@ -81,8 +81,8 @@
         ([== 37] 10)
         ([== 36] 4)
         ([== 35] 3)
-        ([== 0]  22)
-        ([== 30] 6)
+        ([== 0]  24)
+        ([== 30] 8)
         ([== 100] 3)
         (else    2)
        )
@@ -143,17 +143,14 @@
   (when (not (send board is-empty? belong-to)) ; if the side is not empty
  
 
-  (for* ([chess all-chess]) ; for every chess in this side
+  (for ([chess all-chess]) ; for every chess in this side
 
     (get-from (country row col rank) chess)
 
     (set! sum (+ sum (score rank)))
 
-    (when (not (is-labor? rank))
+    (set! sum (+ sum (* ratio (under-attack board chess))))
 
-          (set! sum (+ sum (* ratio (under-attack board chess))))
-
-    )
      
    ) ; for
 
@@ -191,7 +188,7 @@
 
           (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
 
-          (set! sum (+ sum (* sign 1/10 (position-score m-rank) (position-value m-row m-col flag-col))))
+          (set! sum (+ sum (* sign 1/15 (position-score m-rank) (position-value m-row m-col flag-col))))
 
         )
       
@@ -229,19 +226,12 @@
 
          (define accessible #f)
 
-         (if (and (is-labor? s-rank) (not (send board occupied? d-country d-row d-col)) (not (>= d-row 4)))
 
-             (set! accessible #f)
-
-             ; else
-
-             (begin
-               (define (board-occupied? x y z) (send board occupied? x y z))
+         (define (board-occupied? x y z) (send board occupied? x y z))
                
-               (define move-list (route-list board-occupied? s-country s-row s-col s-rank d-country d-row d-col))
-               (set! accessible (> (length move-list) 1))
-             )
-         )
+         (define move-list (route-list board-occupied? s-country s-row s-col s-rank d-country d-row d-col))
+         (set! accessible (> (length move-list) 1))
+         
 
          (define go-able   (or (not (send board occupied? d-country d-row d-col))
                           (and (send board occupied? d-country d-row d-col)
