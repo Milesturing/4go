@@ -1,3 +1,3 @@
 # 4go
-four-country strategic battle game (Chinese-4-Stratego), a little practice using Racket to do real-world programming
+four-country strategic game (Chinese-4-Stratego), a little practice using Racket to do real-world programming
 
