@@ -151,20 +151,10 @@
              [d-col (range (col-num d-country))])
 
          (get-from (_ _2 _3 d-rank d-belong-to) (send board find-whole-chess d-country d-row d-col))
+  
+         (define move-list (route-list board occupied? s-chess d-pos))
+         (define accessible (> (length move-list) 1))
 
-         (define accessible #f)
-
-         (if (and (is-labor? s-rank) (not ((occupied? board) d-country d-row d-col))
-                   (not (and (not (send board is-empty? d-belong-to)) (>= d-row 4)))
-             )
-
-             (set! accessible #f)
-
-             (begin
-               (define move-list (route-list board occupied? s-chess d-pos))
-               (set! accessible (> (length move-list) 1))
-              )
-         )
         
 
          (define goable   (or (not ((occupied? board) d-country d-row d-col))
@@ -187,7 +177,7 @@
                  
                   ; else
 
-                 (match (beat-it? s-rank d-rank)
+                 (match (fight-result s-chess d-chess)
                         ([== 1] (begin
                                   (send board delete-occupied d-pos)
                                   (send board occupy s-chess d-pos 'normal)

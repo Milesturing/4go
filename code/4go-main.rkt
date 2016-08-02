@@ -85,38 +85,45 @@
 
 ; ====================================================
 
-(define (move-it move-list time o-chess c-chess c-pos)
+(define (move-it move-list time o-chess c-pos)
 
+   (define c-chess (send board find-whole-chess c-pos))
   
-   (when (not-exist? c-chess) ; empty
+                    
+   (if (not-exist? c-chess) ; empty
 
-      (draw-route move-list o-chess time)
+      (begin
 
-      (send board occupy o-chess c-pos 'normal)
-
-      (go-to-next-country)
-
-   )
-
-   (when (and (exist? c-chess) (fight-able o-chess c-chess)) ; fight with it!
-
-        (define beat? (fight-result o-chess c-chess))
         (draw-route move-list o-chess time)
 
-        (when (> beat? -1)
+        (send board occupy o-chess c-pos 'normal)
+
+        (go-to-next-country)
+
+      )
+      
+   ; else when (exist? c-chess)
+
+     (when (fight-able o-chess c-chess) ; fight with it!
+
+        (draw-route move-list o-chess time)
+     
+        (define beat? (fight-result o-chess c-chess))
+        (when (or (= beat? 1) (= beat? 0))
               (send board delete-occupied c-pos)
               (if (is-flag? c-chess) (send board delete-nation c-chess))
          )     
 
-        (if (= beat? -1)
+        (when (= beat? -1)
             (send board occupy c-chess c-pos 'normal)
         )    
             
-        (if (= beat? 1)
+        (when (= beat? 1)
             (send board occupy o-chess c-pos 'normal)
         )  
 
        (go-to-next-country)
+     )
      
    )
 
@@ -124,20 +131,31 @@
 
 ; ====================================================
 
-(define (auto-move-to time o-pos c-pos)
+(define (auto-move-to o-pos c-pos)
 
    (define o-chess (send board find-whole-chess o-pos))
-   (define c-chess (send board find-whole-chess c-pos))
 
    (define move-list (route-list board occupied? o-chess c-pos))      
    (define accessible (> (length move-list) 1))
 
    (when accessible
 
-      (move-it move-list time o-chess c-chess c-pos)
+      (move-it move-list 0.7 o-chess c-pos)
 
     )
 )
+; ====================================================
+
+(define (computer-run belong-to strategy)
+
+  (define the-move (eval (list strategy board belong-to)) )
+
+  (if (not (= (length the-move) 2))
+        (error "Wrong output from strategy")
+   ; else 
+        (apply auto-move-to the-move)
+  )
+)  
 
 ; ====================================================
 
@@ -168,13 +186,9 @@
         (define o-pos (send o-chess get-position))
       
         (if accessible
-
-              (move-it move-list 0.1 o-chess c-chess c-pos) 
-
+              (move-it move-list 0.1 o-chess c-pos) 
          ; else
-            
               (send board change-state o-pos 'normal)  ; put down the chess
-
         ) 
 
     )
@@ -269,19 +283,6 @@
                                                          ; strategy number that computer adopts
        )          
    )    
-)  
-
-; ====================================================
-
-(define (computer-run belong-to strategy)
-
-  (define the-move (eval (list strategy board belong-to)) )
-
-  (if (null? the-move)
-        (error "Wrong move from strategy")
-   ; else 
-        (apply auto-move-to 0.7 the-move)
-  )
 )  
 
 ; ====================================================
