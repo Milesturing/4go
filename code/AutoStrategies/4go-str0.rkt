@@ -28,7 +28,7 @@
     (for* [(e-chess enemy-chesses)]
        #:break quit
 
-      (get-from (e-country e-row e-col e-rank) e-chess)
+;      (get-from (e-country e-row e-col e-rank) e-chess)
 
       (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0)))
 

@@ -85,26 +85,23 @@
 
 ; ====================================================
 
-(define (move-to o-pos c-pos)
+(define (move-it move-list time o-chess c-chess c-pos)
 
-   (define o-chess (send board find-whole-chess o-pos))
-   (define c-chess (send board find-whole-chess c-pos))
+  
+   (when (not-exist? c-chess) ; empty
 
-   (define move-list (route-list board occupied? o-chess c-pos))      
-   (define accessible (> (length move-list) 1))
-
-   (when (and accessible (not-exist? c-chess))
-
-      (draw-route move-list o-chess 0.7)
+      (draw-route move-list o-chess time)
 
       (send board occupy o-chess c-pos 'normal)
 
+      (go-to-next-country)
+
    )
 
-   (when (and accessible (exist? c-chess) (fight-able o-chess c-chess)) ; fight with it!
+   (when (and (exist? c-chess) (fight-able o-chess c-chess)) ; fight with it!
 
         (define beat? (fight-result o-chess c-chess))
-        (draw-route move-list o-chess 0.7)
+        (draw-route move-list o-chess time)
 
         (when (> beat? -1)
               (send board delete-occupied c-pos)
@@ -119,17 +116,36 @@
             (send board occupy o-chess c-pos 'normal)
         )  
 
+       (go-to-next-country)
+     
    )
+
+)
+
+; ====================================================
+
+(define (auto-move-to time o-pos c-pos)
+
+   (define o-chess (send board find-whole-chess o-pos))
+   (define c-chess (send board find-whole-chess c-pos))
+
+   (define move-list (route-list board occupied? o-chess c-pos))      
+   (define accessible (> (length move-list) 1))
+
+   (when accessible
+
+      (move-it move-list time o-chess c-chess c-pos)
+
+    )
 )
 
 ; ====================================================
 
 (define (click-chess country-row-col)
 
-  (define c-pos (set-position country-row-col)) ; c = clicked
-  
-  (when c-pos    
+  (when country-row-col
     
+    (define c-pos (set-position country-row-col)) ; c = clicked
     (define c-chess (send board find-whole-chess c-pos)) ; clicked chess
     (define o-chess (send board find-picked-up)) ; o = original
 
@@ -142,59 +158,32 @@
 
          (send board change-state c-pos 'picked-up) ; change the status
 
-    )
+    )  
     
     (when (exist? o-chess) ; ready to move
+          
+        (define move-list (route-list board occupied? o-chess c-pos))      
+        (define accessible (> (length move-list) 1))
 
-      (define move-list (route-list board occupied? o-chess c-pos))      
-      (define accessible (> (length move-list) 1))
+        (define o-pos (send o-chess get-position))
       
-      (when (not accessible) ; put down the chess
+        (if accessible
 
-         (define o-pos (send o-chess get-position))
-         (send board change-state o-pos 'normal)
-        
-      )
+              (move-it move-list 0.1 o-chess c-chess c-pos) 
 
-      (when (and accessible (not-exist? c-chess)) ; empty position
+         ; else
+            
+              (send board change-state o-pos 'normal)  ; put down the chess
 
-          (draw-route move-list o-chess 0.1)
+        ) 
 
-          (send board occupy o-chess c-pos 'normal)
-        
-          (go-to-next-country)
-
-      )
-
-      (when (and accessible (exist? c-chess) (fight-able o-chess c-chess)) ; fight with it!
-
-        (draw-route move-list o-chess 0.1)
-        
-        (define beat? (fight-result o-chess c-chess))
-        
-        (when (> beat? -1)
-              (send board delete-occupied c-pos)
-              (if (send c-chess is-flag?) (send board delete-nation c-chess))
-         )
-
-        (when (= beat? -1)
-            (send board occupy c-chess c-pos 'normal)
-        )    
-
-        (when (= beat? 1)
-            (send board occupy o-chess c-pos 'normal)
-        )
-      
-        (go-to-next-country)
-
-      )
-      
     )
     
     (re-draw)
 
   )
 )
+
 
 ; ====================================================================
 ; initialization
@@ -278,7 +267,6 @@
 
            (computer-run which-turn (player which-turn)) ; the second argument being the
                                                          ; strategy number that computer adopts
-           (go-to-next-country)
        )          
    )    
 )  
@@ -289,7 +277,11 @@
 
   (define the-move (eval (list strategy board belong-to)) )
 
-  (unless (null? the-move) (apply move-to the-move))  
+  (if (null? the-move)
+        (error "Wrong move from strategy")
+   ; else 
+        (apply auto-move-to 0.7 the-move)
+  )
 )  
 
 ; ====================================================
