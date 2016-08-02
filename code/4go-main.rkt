@@ -68,7 +68,7 @@
 
 (define (draw-route move-list chess time)
   
-    (for* ([route-step move-list])
+    (for* ([route-step (drop-right move-list 1)])
          
            (send board delete-occupied route-step)
            (send board occupy chess route-step 'picked-up)
@@ -78,6 +78,8 @@
 
            (send board delete-occupied route-step)
      )
+
+     (send board delete-occupied (last move-list))
   
 )
 
