@@ -3,18 +3,20 @@
 (require "4go-def.rkt")
 
 (provide one-position% one-chess% chess-board%
-         get-belong-to get-rank occupied?
+         get-country get-row get-col
+         get-belong-to get-rank get-state
+         get-values get-full-values occupied?
          
          in-camp? in-base? move-able?
          is-flag? is-labor? is-bomb? is-mine?  
-         exist? not-exist?
+         exist? not-exist? is-empty?
 
          get-occupied-list set-occupied-list
          set-position get-position delete-occupied
          
          find-picked-up find-whole-chess find-all-enemies
-         find-belong-to find-country find-rank is-empty?
-         fight-able fight-result)
+         find-belong-to find-country find-rank
+         fight-able fight-result filter-with)
 
 ; ===================================================================
 
@@ -92,10 +94,6 @@
       state
     )
 
-    (define/public (get-rest)
-      (values rank belong-to state)
-    )
-    
     (define/public (get-full-values)
       (values country row col rank belong-to state)
     )
@@ -182,7 +180,7 @@
                   (eq? (first lst) country))
      )
 
-     (define/public (same-rank? rank)
+     (define/private (same-rank? rank)
           (lambda (lst)
               (eq? (fourth lst) rank))
      )
@@ -200,9 +198,8 @@
                )
           )
      )
-
   
-     (define/public (find-picked-up)
+    (define/public (find-picked-up)
           (set-chess  
                (findf
                   (lambda (lst)
@@ -342,9 +339,33 @@
 
 )
 
-(define (get-belong-to chess)
-        (if chess
-            (send chess get-belong-to)
+(define (get-country pos)
+        (if pos
+            (send pos get-country)
+        ; else
+            #f
+        )
+)
+
+(define (get-row pos)
+        (if pos
+            (send pos get-row)
+        ; else
+            #f
+        )
+)
+
+(define (get-col pos)
+        (if pos
+            (send pos get-col)
+        ; else
+            #f
+        )
+)
+
+(define (get-values pos)
+        (if pos
+            (send pos get-values)
         ; else
             #f
         )
@@ -358,8 +379,37 @@
         )
 )
 
+
+(define (get-belong-to chess)
+        (if chess
+            (send chess get-belong-to)
+        ; else
+            #f
+        )
+)
+
+(define (get-state chess)
+        (if chess
+            (send chess get-state)
+        ; else
+            #f
+        )
+)
+
+(define (get-full-values chess)
+        (if chess
+            (send chess get-full-values)
+        ; else
+            #f
+        )
+)
+
 (define (get-position chess)
-        (send chess get-position)
+        (if chess
+            (send chess get-position)
+        ; else
+            #f
+        )
 )
 
 (define (in-camp? pos_or_chess)
@@ -486,6 +536,19 @@
 
 )
 
+(define (filter-with judge-list chesses)
+
+          (filter
+
+              (lambda (chess)
+              (begin
+                   (define-values [country row col rank belong-to state] (send chess get-full-values))
+                   (andmap (lambda (x1 x2) (or (eq? x1 x2) (not x1))) ; x1 can be #f which is all-match
+                           judge-list (list country row col rank belong-to state))
+              ))
+                  
+           chesses)
+)
 
 
 

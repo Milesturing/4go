@@ -75,13 +75,13 @@
      
    ) ; for
 
-   (define flag-list (filter (send board same-rank? 10) all-chess))
+   (define flag-list (filter-with (list #f #f #f 10 #f #f) all-chess)) ; rank = 10
 
-   (when (not (null? flag-list))
+   (unless (null? flag-list)
 
    (define flag (car flag-list))
 
-   (get-from (_ _2 flag-col) flag)
+   (define flag-col (get-col flag))
 
    (define (extra-score e-row e-col e-score)
 
