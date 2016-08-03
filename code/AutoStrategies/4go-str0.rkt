@@ -85,11 +85,15 @@
 
    (define (extra-score e-row e-col e-score)
 
-     (when ((occupied? board) belong-to e-row e-col)
+     (define e-pos (set-position (list belong-to e-row e-col)))
 
-       (get-from (_ _2 _3 _4 which-side) (send board find-whole-chess belong-to e-row e-col))
+     (define e-chess (find-whole-chess board e-pos))  
+                                
+     (when (exist? e-chess)
 
-       (if (enemy? which-side belong-to)
+       (define which-side (get-belong-to e-chess))
+
+       (when (enemy? which-side belong-to)
 
            (set! sum (- sum e-score))
            
@@ -157,9 +161,16 @@
 
              (delete-occupied board s-pos)
 
+             (define case 0)
+
              (if (not-exist? d-chess)
 
-                  (send board occupy s-chess d-pos 'normal)
+                  (begin
+                    
+                        (send board occupy s-chess d-pos 'normal)
+                        (set! case 1)
+
+                  )
                  
                   ; else
 
@@ -167,6 +178,7 @@
                         ([== 1] (begin
                                   (send board delete-occupied d-pos)
                                   (send board occupy s-chess d-pos 'normal)
+                                  (set! case 1)
                                  ))
                         ([== 0] (send board delete-occupied d-pos))
                         ([== -1] null)
@@ -180,9 +192,9 @@
 
            
 
-              (when (under-attack board (send board find-whole-chess d-country d-row d-col))
+              (when (and (= case 1) (under-attack board (find-whole-chess board d-pos)))
 
-                  (set! value (- value (* ratio (score s-rank))))
+                  (set! value (- value (* ratio (score (get-rank s-chess)))))
 
               )
 
@@ -192,10 +204,10 @@
               (when (>= value max-value)
 
                     (set! max-value value)
-                    (set! one-move (list s-country s-row s-col d-country d-row d-col))
+                    (set! one-move (list s-pos d-pos))
               )
                   
-              (send board set-occupied-list save-occupied)
+              (set-occupied-list board save-occupied)
             )
            )
         )

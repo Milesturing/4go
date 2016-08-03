@@ -6,9 +6,9 @@
 (require "4go-def.rkt" "4go-utils.rkt"
          "4go-obj.rkt" "4go-route.rkt")
 
-;(require "AutoStrategies/4go-str0.rkt"
+(require "AutoStrategies/4go-str0.rkt"
 ;         "AutoStrategies/4go-str1.rkt"
-;                                      ) ; load strategies
+                                      ) ; load strategies
 
 ; ===================================================================
 ; global variables
@@ -27,9 +27,9 @@
 
   (match country
     [(== down) 'human]
-    [(== right) 'human]
-    [(== up) 'human]
-    [(== left) 'human]
+    [(== right) 'strategy0]
+    [(== up) 'strategy0]
+    [(== left) 'strategy0]
     )
   
 )
@@ -66,20 +66,29 @@
 
 ; ====================================================
 
-(define (draw-route move-list chess time)
+(define (draw-route move-list chess delay-time)
+
+    (define index 0)
+    (define len (length move-list))
   
-    (for* ([route-step (drop-right move-list 1)])
-         
+    (for ([route-step move-list])
+
+           (set! index (add1 index))
            (send board delete-occupied route-step)
-           (send board occupy chess route-step 'picked-up)
+
+           (when (< index len)
+               
+                 (send board occupy chess route-step 'picked-up)
       
-           (re-draw)
-           (sleep (/ time (length move-list)))
+                 (re-draw)
+                 (sleep (/ delay-time (length move-list)))
 
-           (send board delete-occupied route-step)
+                 (send board delete-occupied route-step)
+             
+           )
+
      )
-
-     (send board delete-occupied (last move-list))
+ 
   
 )
 
@@ -140,7 +149,7 @@
 
    (when accessible
 
-      (move-from-to move-list 0.7 o-chess c-pos)
+      (move-from-to move-list 0.6 o-chess c-pos)
 
     )
 )
@@ -268,8 +277,6 @@
            (define belong-to which-turn)
              
            (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
-
-           (re-draw)
 
            (if (not (= (length the-move) 2))
                (error "Wrong output from strategy")
