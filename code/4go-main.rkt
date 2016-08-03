@@ -86,10 +86,10 @@
                  (send board delete-occupied route-step)
              
            )
-
+      
      )
- 
-  
+
+   
 )
 
 ; ====================================================
@@ -107,11 +107,9 @@
 
         (send board occupy o-chess c-pos 'normal)
 
-        (go-to-next-country)
-
       )
       
-   ; else when (exist? c-chess)
+   ; else 
 
      (when (fight-able o-chess c-chess) ; fight with it!
 
@@ -131,7 +129,6 @@
             (send board occupy o-chess c-pos 'normal)
         )  
 
-       (go-to-next-country)
      )
      
    )
@@ -149,7 +146,7 @@
 
    (when accessible
 
-      (move-from-to move-list 0.6 o-chess c-pos)
+      (move-from-to move-list 0.7 o-chess c-pos)
 
     )
 )
@@ -183,7 +180,12 @@
         (define o-pos (send o-chess get-position))
       
         (if accessible
-              (move-from-to move-list 0.1 o-chess c-pos) 
+            (when (or (not-exist? c-chess) (fight-able o-chess c-chess))
+                
+               (move-from-to move-list 0.1 o-chess c-pos)
+               (go-to-next-country)
+
+             )
          ; else
               (send board change-state o-pos 'normal)  ; put down the chess
         ) 
@@ -266,7 +268,7 @@
 
 (define (go-to-next-country)
 
-  (set! which-turn (right-country which-turn))
+   (set! which-turn (right-country which-turn))
 
    (if (send board is-empty? which-turn)
        (go-to-next-country)
@@ -276,14 +278,15 @@
            (define strategy (player which-turn)) ; the strategy code that computer adopts
            (define belong-to which-turn)
              
-           (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
-
+           (define the-move null)
+           (set! the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
+         
            (if (not (= (length the-move) 2))
                (error "Wrong output from strategy")
-           ; else 
+           ; else
                (apply move-to the-move)
            )
-
+           (go-to-next-country)
          
        )          
    )    
