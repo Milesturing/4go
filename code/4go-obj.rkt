@@ -8,8 +8,9 @@
          in-camp? in-base? move-able?
          is-flag? is-labor? is-bomb? is-mine?  
          exist? not-exist?
-         
-         set-position get-position
+
+         get-occupied-list set-occupied-list
+         set-position get-position delete-occupied
          
          find-picked-up find-whole-chess find-all-enemies
          find-belong-to find-country find-rank is-empty?
@@ -353,51 +354,64 @@
         (send chess get-position)
 )
 
+(define (in-camp? pos_or_chess)
+        (if pos_or_chess
+            (send pos_or_chess in-camp?)
+        ; else
+            #f
+        )
+)
+
+(define (in-base? pos_or_chess)
+        (if pos_or_chess
+            (send pos_or_chess in-base?)
+        ; else
+            #f
+        )
+)
+
 (define (move-able? chess)
         (if chess
             (send chess move-able?)
-            ; else
-            #f
-        )
-)
-
-(define (in-camp? chess)
-        (if chess
-            (send chess in-camp?)
-            ; else
-            #f
-        )
-)
-
-(define (in-base? chess)
-        (if chess
-            (send chess in-base?)
-            ; else
+        ; else
             #f
         )
 )
 
 (define (is-flag? chess)
 
-  (send chess is-flag?)
-
+       (if chess
+           (send chess is-flag?)
+       ; else
+           #f
+       )
 )
 
 (define (is-labor? chess)
 
-  (send chess is-labor?)
-
+      (if chess
+          (send chess is-labor?)
+      ; else
+         #f
+      )
 )
 
 (define (is-mine? chess)
 
-  (send chess is-mine?)
-
+     (if chess
+         (send chess is-mine?)
+     ; else
+         #f
+     )
 )
 
 (define (is-bomb? chess)
 
-  (send chess is-bomb?)
+     (if chess
+         (send chess is-bomb?)
+     ; else
+         #f
+     )
 
 )
 
@@ -436,7 +450,19 @@
 (define (is-empty? board belong-to)
         (send board is-empty? belong-to)
 )
-         
+
+(define (get-occupied-list board)
+        (send board get-occupied-list)
+)
+
+(define (set-occupied-list board x)
+        (send board set-occupied-list x)
+)
+
+(define (delete-occupied board position)
+        (send board delete-occupied position)
+)
+
 (define (fight-able chess1 chess2)
 
   (and (enemy? (send chess1 get-belong-to)

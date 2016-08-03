@@ -132,8 +132,10 @@
   
     (for* ([s-chess whole-list])
       
-      (if (move-able? s-chess)
-  
+      (when (move-able? s-chess)
+
+      (define s-pos (get-position s-chess))
+        
       (for* ([d-country (list middle up left down right)]
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
@@ -141,25 +143,26 @@
          (define d-pos (set-position (list d-country d-row d-col)))
          (define d-chess (find-whole-chess board d-pos))
   
-         (define move-list (route-list board s-chess d-pos))
-         (define accessible (> (length move-list) 1))
-        
+         (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
+                                   (not (in-base? d-pos))
+                               )
+                              (or (not (exist? d-chess))
+                                  (and (exist? d-chess) (fight-able s-chess d-chess))
+                              )
+                          )) ; conditions
 
-         (define goable   (or (not ((occupied? board) d-country d-row d-col))
-                              (and ((occupied? board) d-country d-row d-col)
-                                   (enemy? s-belong-to d-belong-to)
-                                   (not (is-camp? d-country d-row d-col))
-                                   (not (and (is-base? d-country d-row d-col)
-                                         (not (eq? d-rank 10))))
-                               )))
+         (when goable ; first filter those positions that are available only
 
-         (when (and accessible goable)
+           (define move-list (route-list board s-chess d-pos))
+           (define accessible (> (length move-list) 1))
 
-             (set! save-occupied (send board get-occupied-list))
+           (when accessible ; second filter availability
 
-             (send board delete-occupied s-pos)
+             (set! save-occupied (get-occupied-list board)) ; save it
 
-             (if (not ((occupied? board) d-country d-row d-col))
+             (delete-occupied board s-pos)
+
+             (if (not-exist? d-chess)
 
                   (send board occupy s-chess d-pos 'normal)
                  
@@ -173,7 +176,7 @@
                         ([== 0] (send board delete-occupied d-pos))
                         ([== -1] null)
                    )
-                 )
+              )
 
               (set! value (- (+ (calculate-value board belong-to)
                                 (calculate-value board (right-country (right-country belong-to))))
@@ -199,6 +202,7 @@
                   
               (send board set-occupied-list save-occupied)
             )
+           )
         )
 
     ))
