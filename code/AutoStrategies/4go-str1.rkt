@@ -37,7 +37,7 @@
         
          (when (= beat? 1)
 
-           (define move-list (route-list board occupied? e-chess c-pos))      
+           (define move-list (route-list board e-chess c-pos))      
            (define accessible (> (length move-list) 1))
 
            (when accessible
@@ -49,7 +49,7 @@
          (when (= beat? 0)
 
 
-           (define move-list (route-list board occupied? e-chess c-pos))      
+           (define move-list (route-list board e-chess c-pos))      
            (define accessible (> (length move-list) 1))
 
            (when accessible
@@ -224,7 +224,7 @@
          (define accessible #f)
         
                
-         (define move-list (route-list board occupied? s-chess d-pos))
+         (define move-list (route-list board s-chess d-pos))
          (set! accessible (> (length move-list) 1))
          
 

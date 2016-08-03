@@ -4,10 +4,16 @@
 
 (provide one-position% one-chess% chess-board%
          get-belong-to get-rank occupied?
-         move-able? in-camp? is-flag? is-labor?
+         
+         in-camp? in-base? move-able?
+         is-flag? is-labor? is-bomb? is-mine?  
          exist? not-exist?
+         
          set-position get-position
-         find-picked-up fight-able fight-result)
+         
+         find-picked-up find-whole-chess find-all-enemies
+         find-belong-to find-country find-rank is-empty?
+         fight-able fight-result)
 
 ; ===================================================================
 
@@ -205,9 +211,13 @@
      )
 
      (define/public (find-country country)
+
+       (map set-chess
           (filter
              (same-country? country)
            occupied-list)
+       )
+          
      )
 
      (define/public (find-whole-chess position)
@@ -258,12 +268,31 @@
 
 
     (define/public (find-belong-to belong-to)
+      
+      (map set-chess
+           
          (filter (same-belong-to? belong-to) occupied-list)
+         
+      )
+      
     )
 
-    (define/public (find-rank rank)
-         (filter (same-rank? rank) occupied-list)
+    (define/public (find-all-enemies belong-to)
+      
+      (append (find-belong-to (right-country belong-to))
+              (find-belong-to (left-country  belong-to))
+      )
+      
     )  
+
+    (define/public (find-rank rank)
+
+      (map set-chess
+           
+         (filter (same-rank? rank) occupied-list)
+      )
+
+    )
 
     (define/public (delete-nation chess) ; delete everything of the nation that a chess belongs to
         (set! occupied-list
@@ -273,7 +302,6 @@
     (define/public (is-empty? belong-to)
         (null? (find-belong-to belong-to))
     )
-
   
 ))    
 
@@ -341,6 +369,14 @@
         )
 )
 
+(define (in-base? chess)
+        (if chess
+            (send chess in-base?)
+            ; else
+            #f
+        )
+)
+
 (define (is-flag? chess)
 
   (send chess is-flag?)
@@ -350,6 +386,18 @@
 (define (is-labor? chess)
 
   (send chess is-labor?)
+
+)
+
+(define (is-mine? chess)
+
+  (send chess is-mine?)
+
+)
+
+(define (is-bomb? chess)
+
+  (send chess is-bomb?)
 
 )
 
@@ -365,6 +413,30 @@
         (send board find-picked-up)
 )
 
+(define (find-whole-chess board position)
+        (send board find-whole-chess position)
+)
+
+(define (find-belong-to board belong-to)
+        (send board find-belong-to belong-to)
+)
+
+(define (find-all-enemies board belong-to)
+        (send board find-all-enemies belong-to)
+)         
+
+(define (find-country board country)
+        (send board find-country country)
+)
+
+(define (find-rank board rank)
+        (send board find-rank rank)
+)
+
+(define (is-empty? board belong-to)
+        (send board is-empty? belong-to)
+)
+         
 (define (fight-able chess1 chess2)
 
   (and (enemy? (send chess1 get-belong-to)

@@ -2,7 +2,7 @@
 
 (require "4go-def.rkt" "4go-obj.rkt" "4go-labor.rkt")
 
-(provide route-list  ; (route-list board occupied? chess new-pos) 
+(provide route-list  ; (route-list board chess new-pos) 
 
          )
  
@@ -80,7 +80,7 @@
 
 ;=================================================================================================
   
-(define (route-list board occupied? chess new-pos)
+(define (route-list board chess new-pos)
   
   (define board-occupied? (occupied? board)) ; a function
 

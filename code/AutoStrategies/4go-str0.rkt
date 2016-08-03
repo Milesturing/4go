@@ -14,40 +14,30 @@
   (define result #f)
   (define quit #f)
 
-;  (get-from (country row col rank belong-to) chess)
-    
   (when (and (exist? chess) (not (in-camp? chess)))
 
-    (define enemy-chesses
-
-       (append (send board find-belong-to (right-country belong-to))
-               (send board find-belong-to (left-country belong-to)))
-
-    )
-
+    (define enemy-chesses (find-all-enemies board (get-belong-to chess)))
+                           
     (for* [(e-chess enemy-chesses)]
        #:break quit
 
-;      (get-from (e-country e-row e-col e-rank) e-chess)
+      (when (and (move-able? e-chess) (or (= (fight-result e-chess chess) 1) (is-bomb? e-chess)))
 
-      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0)))
+         (define move-list (route-list board e-chess (get-position chess)))      
 
-         (define move-list (route-list board occupied? e-chess c-pos))      
-
-         (define accessible (> (length move-list) 1))
-
-         (when accessible
+         (when (> (length move-list) 1)
 
               (set! result #t)
               (set! quit #t)
+           
          )
-        )
-      
       )
-
+      
    )
+
+  )
   
-   result
+  result
 
 )
 
@@ -133,37 +123,35 @@
 
 (define (strategy0 board belong-to)
 
-    (define whole-list (send board find-belong-to belong-to))
+    (define whole-list (find-belong-to board belong-to))
     (define one-move null)
     (define value 0)
     (define max-value -10000)
     (define save-occupied null)
     (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
   
-    (for* ([some-chess whole-list])
-
-      (get-from (s-country s-row s-col s-rank s-belong-to) some-chess)
+    (for* ([s-chess whole-list])
       
-      (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
+      (if (move-able? s-chess)
   
       (for* ([d-country (list middle up left down right)]
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-         (get-from (_ _2 _3 d-rank d-belong-to) (send board find-whole-chess d-country d-row d-col))
+         (define d-pos (set-position (list d-country d-row d-col)))
+         (define d-chess (find-whole-chess board d-pos))
   
-         (define move-list (route-list board occupied? s-chess d-pos))
+         (define move-list (route-list board s-chess d-pos))
          (define accessible (> (length move-list) 1))
-
         
 
          (define goable   (or (not ((occupied? board) d-country d-row d-col))
-                          (and ((occupied? board) d-country d-row d-col)
-                               (enemy? s-belong-to d-belong-to)
-                               (not (is-camp? d-country d-row d-col))
-                               (not (and (is-base? d-country d-row d-col)
+                              (and ((occupied? board) d-country d-row d-col)
+                                   (enemy? s-belong-to d-belong-to)
+                                   (not (is-camp? d-country d-row d-col))
+                                   (not (and (is-base? d-country d-row d-col)
                                          (not (eq? d-rank 10))))
-                              )))
+                               )))
 
          (when (and accessible goable)
 
@@ -194,7 +182,7 @@
 
            
 
-              (when (and (not (is-labor? s-rank)) (under-attack board (send board find-whole-chess d-country d-row d-col)))
+              (when (under-attack board (send board find-whole-chess d-country d-row d-col))
 
                   (set! value (- value (* ratio (score s-rank))))
 

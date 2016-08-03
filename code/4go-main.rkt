@@ -135,7 +135,7 @@
 
    (define o-chess (send board find-whole-chess o-pos))
 
-   (define move-list (route-list board occupied? o-chess c-pos))      
+   (define move-list (route-list board o-chess c-pos))      
    (define accessible (> (length move-list) 1))
 
    (when accessible
@@ -168,7 +168,7 @@
     
     (when (exist? o-chess) ; ready to move
           
-        (define move-list (route-list board occupied? o-chess c-pos))      
+        (define move-list (route-list board o-chess c-pos))      
         (define accessible (> (length move-list) 1))
 
         (define o-pos (send o-chess get-position))
