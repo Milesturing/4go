@@ -85,7 +85,7 @@
 
 ; ====================================================
 
-(define (move-it move-list time o-chess c-pos)
+(define (move-from-to move-list time o-chess c-pos)
 
    (define c-chess (send board find-whole-chess c-pos))
   
@@ -131,7 +131,7 @@
 
 ; ====================================================
 
-(define (auto-move-to o-pos c-pos)
+(define (move-to o-pos c-pos)
 
    (define o-chess (send board find-whole-chess o-pos))
 
@@ -140,22 +140,10 @@
 
    (when accessible
 
-      (move-it move-list 0.7 o-chess c-pos)
+      (move-from-to move-list 0.7 o-chess c-pos)
 
     )
 )
-; ====================================================
-
-(define (computer-run belong-to strategy)
-
-  (define the-move (eval (list strategy board belong-to)) )
-
-  (if (not (= (length the-move) 2))
-        (error "Wrong output from strategy")
-   ; else 
-        (apply auto-move-to the-move)
-  )
-)  
 
 ; ====================================================
 
@@ -186,7 +174,7 @@
         (define o-pos (send o-chess get-position))
       
         (if accessible
-              (move-it move-list 0.1 o-chess c-pos) 
+              (move-from-to move-list 0.1 o-chess c-pos) 
          ; else
               (send board change-state o-pos 'normal)  ; put down the chess
         ) 
@@ -276,11 +264,22 @@
    (if (send board is-empty? which-turn)
        (go-to-next-country)
        ; else
-       (unless (eq? (player which-turn) 'human)
+       (unless (eq? (player which-turn) 'human) ; computer run
+         
+           (define strategy (player which-turn)) ; the strategy code that computer adopts
+           (define belong-to which-turn)
+             
+           (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
+
            (re-draw)
 
-           (computer-run which-turn (player which-turn)) ; the second argument being the
-                                                         ; strategy number that computer adopts
+           (if (not (= (length the-move) 2))
+               (error "Wrong output from strategy")
+           ; else 
+               (apply move-to the-move)
+           )
+
+         
        )          
    )    
 )  
