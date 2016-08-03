@@ -203,14 +203,12 @@
       (set! forb #t))
   (if (and (= rank 100) (= row 4) (even? col)
            (member
-             (let ([chess (send board find-whole-chess (set-position (list country 5 col)))])
-                  (if chess (send chess get-rank) #f)) 
+             (get-rank (find-whole-chess board (set-position (list country 5 col))))
             (list 40 39 38 0)))
       (set! forb #t))
   (if (and (= row 5) (even? col) (member rank (list 40 39 38 0))
            (eq?
-             (let ([chess (send board find-whole-chess (set-position (list country 4 col)))])
-                  (if chess (send chess get-rank) #f)) 
+             (get-rank (find-whole-chess board (set-position (list country 4 col))))
             100))
       (set! forb #t))
                  

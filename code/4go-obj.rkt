@@ -343,11 +343,19 @@
 )
 
 (define (get-belong-to chess)
-        (send chess get-belong-to)
+        (if chess
+            (send chess get-belong-to)
+        ; else
+            #f
+        )
 )
 
 (define (get-rank chess)
-        (send chess get-rank)
+        (if chess
+            (send chess get-rank)
+        ; else
+            #f
+        )
 )
 
 (define (get-position chess)

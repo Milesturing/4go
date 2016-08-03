@@ -61,22 +61,17 @@
 
 (define (calculate-value board belong-to)
 
-  (define all-chess (send board find-belong-to belong-to))
+  (define all-chess (find-belong-to board belong-to))
   (define sum 0)
 
-
-  (when (not (send board is-empty? belong-to)) 
+  (unless (null? all-chess)
  
 
   (for* ([chess all-chess])
 
-    (get-from (country row col rank) chess)
+    (set! sum (+ sum (score (get-rank chess) )))
 
-    (set! sum (+ sum (score rank)))
-   
-    ;
-
-    (if (is-camp? country row col) (set! sum (add1 sum)))
+    (if (in-camp? chess) (set! sum (add1 sum)))
      
    ) ; for
 
