@@ -70,7 +70,7 @@
 
     (define index 0)
     (define len (length move-list))
-  
+
     (for ([route-step move-list])
 
            (set! index (add1 index))
@@ -79,22 +79,23 @@
            (when (< index len)
                
                  (send board occupy chess route-step 'picked-up)
-      
+
+
                  (re-draw)
+
+             
                  (sleep (/ delay-time (length move-list)))
 
                  (send board delete-occupied route-step)
              
            )
-      
-     )
 
-   
+      )
 )
 
 ; ====================================================
 
-(define (move-from-to move-list time o-chess c-pos)
+(define (move-from-to move-list delay-time o-chess c-pos)
 
    (define c-chess (send board find-whole-chess c-pos))
   
@@ -102,18 +103,19 @@
    (if (not-exist? c-chess) ; empty
 
       (begin
-
-        (draw-route move-list o-chess time)
-
+        
+        (draw-route move-list o-chess delay-time)
+        
         (send board occupy o-chess c-pos 'normal)
 
+        (go-to-next-country)
       )
       
    ; else 
 
      (when (fight-able o-chess c-chess) ; fight with it!
 
-        (draw-route move-list o-chess time)
+        (draw-route move-list o-chess delay-time)
      
         (define beat? (fight-result o-chess c-chess))
         (when (or (= beat? 1) (= beat? 0))
@@ -127,7 +129,9 @@
             
         (when (= beat? 1)
             (send board occupy o-chess c-pos 'normal)
-        )  
+        )
+
+        (go-to-next-country)
 
      )
      
@@ -180,13 +184,11 @@
         (define o-pos (send o-chess get-position))
       
         (if accessible
-            (when (or (not-exist? c-chess) (fight-able o-chess c-chess))
-                
-               (move-from-to move-list 0.1 o-chess c-pos)
-               (go-to-next-country)
 
-             )
+               (move-from-to move-list 0.1 o-chess c-pos)
+
          ; else
+               
               (send board change-state o-pos 'normal)  ; put down the chess
         ) 
 
@@ -274,19 +276,18 @@
        (go-to-next-country)
        ; else
        (unless (eq? (player which-turn) 'human) ; computer run
+
+           (re-draw) ; cannot be removed here
          
            (define strategy (player which-turn)) ; the strategy code that computer adopts
-           (define belong-to which-turn)
-             
-           (define the-move null)
-           (set! the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
+           (define belong-to which-turn)             
+           (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
          
            (if (not (= (length the-move) 2))
                (error "Wrong output from strategy")
            ; else
                (apply move-to the-move)
            )
-           (go-to-next-country)
          
        )          
    )    
