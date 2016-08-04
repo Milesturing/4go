@@ -7,7 +7,7 @@
          "4go-obj.rkt" "4go-route.rkt")
 
 (require "AutoStrategies/4go-str0.rkt"
-;         "AutoStrategies/4go-str1.rkt"
+         "AutoStrategies/4go-str1.rkt"
                                       ) ; load strategies
 
 ; ===================================================================
@@ -27,9 +27,9 @@
 
   (match country
     [(== down) 'human]
-    [(== right) 'strategy0]
-    [(== up) 'strategy0]
-    [(== left) 'strategy0]
+    [(== right) 'strategy1]
+    [(== up) 'strategy1]
+    [(== left) 'strategy1]
     )
   
 )

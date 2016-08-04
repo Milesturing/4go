@@ -67,7 +67,7 @@
   (unless (null? all-chess)
  
 
-  (for* ([chess all-chess])
+  (for ([chess all-chess])
 
     (set! sum (+ sum (score (get-rank chess) )))
 
