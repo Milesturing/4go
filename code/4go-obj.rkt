@@ -2,25 +2,11 @@
 
 (require "4go-def.rkt")
 
-(provide one-position% one-chess% chess-board%
-         get-country get-row get-col
-         get-belong-to get-rank get-state
-         get-values get-full-values occupied?
-         
-         in-camp? in-base? move-able?
-         is-flag? is-labor? is-bomb? is-mine?  
-         exist? not-exist? is-empty?
-
-         get-occupied-list set-occupied-list
-         set-position get-position delete-occupied
-         
-         find-picked-up find-whole-chess find-all-enemies
-         find-belong-to find-country find-rank
-         fight-able fight-result filter-with)
+(provide chess-board%)
 
 ; ===================================================================
 
-(define one-position%
+(define one-chess%
 
   (class object%
 
@@ -28,60 +14,14 @@
     (init-field [country null])
     (init-field [row null])
     (init-field [col null])
-      
-    (define/public (get-values)
-      (values country row col)
-    )
-
-    (define/public (get-country)
-      country
-    )
-
-    (define/public (get-row)
-      row
-    )
-
-    (define/public (get-col)
-      col
-    )
-
-    (define (valid?)
-      (valid? country row col)
-    )
-
-    (define/public (in-camp?)
-      (is-camp? country row col)
-    )
-
-    (define/public (in-base?)
-      (is-base? country row col)
-    )
-
-    (define/public (on-rail?)
-      (on-rail? country row col)
-    )
-    
- )        
-)
-   
-; ===================================================================
-  
-(define one-chess%
-
-  (class one-position%
-
-    (super-new)
-    (inherit-field country)
-    (inherit-field row)
-    (inherit-field col)
     (init-field [rank null])
     (init-field [belong-to null])
     (init-field [state null])
 
-    (define/public (get-position)
-      (set-position (list country row col))
+    (define/public (get-country-row-col)
+      (list country row col)
     )
-       
+
     (define/public (get-rank)
       rank
     )
@@ -94,40 +34,19 @@
       state
     )
 
-    (define/public (get-full-values)
-      (values country row col rank belong-to state)
-    )
-
-    (define/public (is-labor?)
-      (= rank 30)
-    )
-
-    (define/public (is-flag?)
-      (= rank 10)
-    )
-
-    (define/public (is-mine?)
-      (= rank 100)
-    )
-
-    (define/public (is-bomb?)
-      (= rank 0)
+    (define/public (get-rest)
+      (list rank belong-to state)
     )
     
-    (define/public (move-able?)
-      (and (not (send this in-base?))
-           (not (is-flag?))
-           (not (is-mine?))
-      )
+    (define/public (get-full)
+      (list country row col rank belong-to state)
     )
 
-    (define/public (draw dc)
-      (draw-chess dc country row col (rank-code rank) belong-to state)
-    )
-    
   )
   
 )
+
+     
 
 
 ; ===================================================================
@@ -149,30 +68,17 @@
 
     (define/public (draw-all-chesses dc)      
          (for ([item occupied-list])
-
-              (send (set-chess item) draw dc)
-           
+    
+              (get-from (country row col rank belong-to state) item)    
+              (draw-chess dc country row col (rank-code rank) belong-to state)
          )
     )
 
-    (define/public (occupy chess pos state) ; occupy a position with the rank and belong-to of a chess
-
-         (define-values (_c _r _l rank belong-to _s) (send chess get-full-values))
-         (define-values (country row col) (send pos get-values))
-                                          
+    (define/public (occupy country row col rank belong-to state)
          (set! occupied-list
                (cons (list country row col rank belong-to state)
                      occupied-list
                ))   
-     )
-
-    (define/public (throw country row col rank belong-to)
-
-       (occupy (set-chess (list #f #f #f rank belong-to #f))
-               (set-position (list country row col))
-               'normal
-       )
-
      )
 
      (define/private (same-country? country)
@@ -180,7 +86,14 @@
                   (eq? (first lst) country))
      )
 
-     (define/private (same-rank? rank)
+     (define/private (same-country-row-col? country row col)
+          (lambda (lst)
+               (and (eq? (first lst) country)
+                    (eq? (second lst) row)
+                    (eq? (third lst) col)))
+     )
+
+     (define/public (same-rank? rank)
           (lambda (lst)
               (eq? (fourth lst) rank))
      )
@@ -190,368 +103,60 @@
               (eq? (fifth lst) belong-to))
      )
 
-     (define/private (same-country-row-col? position) ; private
-          (lambda (lst)
-               (and (eq? (first lst)  (send position get-country))
-                    (eq? (second lst) (send position get-row))
-                    (eq? (third lst)  (send position get-col))
-               )
-          )
-     )
+     (define/public (delete-occupied country row col)
+          (set! occupied-list
+               (filter-not (same-country-row-col? country row col) occupied-list)
+     ))
   
-    (define/public (find-picked-up)
-          (set-chess  
-               (findf
-                  (lambda (lst)
-                      (eq? (sixth lst) 'picked-up)
-                  ) occupied-list)
-          )
+     (define/public (find-picked-up)
+          (findf
+             (lambda (lst)
+                 (eq? (sixth lst) 'picked-up)
+             ) occupied-list)
      )
 
      (define/public (find-country country)
-
-       (map set-chess
           (filter
              (same-country? country)
            occupied-list)
-       )
-          
      )
 
-     (define/public (find-whole-chess position)
-
-          (if position
-              (set-chess
-                (findf (same-country-row-col? position) occupied-list)
-              )
-          ; else
-              #f
-          )
-     )
-
-    (define/public (change position new-list) ; use #f to denote values not to be changed
-                                                     ; example: (change pos (list #f #f #f #f #f 'picked-up))
-
-          (when position
-
-            (define chosen (findf (same-country-row-col? position) occupied-list))
-            (when chosen
-
-              (define the-rest (filter-not (same-country-row-col? position) occupied-list))
-
-              (set! chosen (map (lambda (a b) (or a b)) new-list chosen))
-              (set! occupied-list
-
-                    (append the-rest (list chosen))
-               
-              )
-           )
-            
-          )
+    (define/public (find-whole-chess country row col)
+         (findf
+             (same-country-row-col? country row col)
+          occupied-list)
     )
 
-    (define/public (change-state position new-state) ; call the above method
-
-        (change position (list #f #f #f #f #f new-state))
-
-    )
-                             
-    (define/public (delete-occupied position)
+    (define/public (find-its-rank country row col) ; find the rank based on the coordinates
+         (define item (find-whole-chess country row col))
   
-        (set! occupied-list
-             (filter-not (same-country-row-col? position) occupied-list)
-        )
-       
-     )
-
-
-    (define/public (find-belong-to belong-to)
-      
-      (map set-chess
-           
-         (filter (same-belong-to? belong-to) occupied-list)
-         
-      )
-      
+         (if item (fourth item) #f)
     )
 
-    (define/public (find-all-enemies belong-to)
-      
-      (append (find-belong-to (right-country belong-to))
-              (find-belong-to (left-country  belong-to))
-      )
-      
+    (define/public occupied?
+         (lambda (country row col) 
+                 (if (find-whole-chess country row col) #t #f)
+         )
     )  
 
-    (define/public (find-rank rank)
-
-      (map set-chess
-           
-         (filter (same-rank? rank) occupied-list)
-      )
-
+    (define/public (find-belong-to belong-to)
+         (filter (same-belong-to? belong-to) occupied-list)
     )
 
-    (define/public (delete-nation chess) ; delete everything of the nation that a chess belongs to
+    (define/public (find-rank rank)
+         (filter (same-rank? rank) occupied-list)
+    )  
+
+    (define/public (delete-country belong-to) ; delete everything of a country
         (set! occupied-list
-             (filter-not (same-belong-to? (send chess get-belong-to)) occupied-list))
+             (filter-not (same-belong-to? belong-to) occupied-list))
     )
         
     (define/public (is-empty? belong-to)
         (null? (find-belong-to belong-to))
     )
-  
+
 ))    
 
 ; ===================================================================
-(define (set-position a-list) ; private
-  
-      (if a-list
-          (new one-position%
-                         [country (first a-list)]
-                         [row (second a-list)]
-                         [col (third a-list)]
-         )
-      ; else
-         #f
-      )
-)
-
-(define (set-chess a-list) ; private
-
-      (if a-list
-          (new one-chess%
-                         [country (first a-list)]
-                         [row (second a-list)]
-                         [col (third a-list)]
-                         [rank (fourth a-list)]
-                         [belong-to (fifth a-list)]
-                         [state (sixth a-list)]
-         )
-      ; else
-         #f
-      )
-)
-
-(define ((occupied? board) country row col)
-
-       (if (send board find-whole-chess (set-position (list country row col))) #t #f)
-
-)
-
-(define (get-country pos)
-        (if pos
-            (send pos get-country)
-        ; else
-            #f
-        )
-)
-
-(define (get-row pos)
-        (if pos
-            (send pos get-row)
-        ; else
-            #f
-        )
-)
-
-(define (get-col pos)
-        (if pos
-            (send pos get-col)
-        ; else
-            #f
-        )
-)
-
-(define (get-values pos)
-        (if pos
-            (send pos get-values)
-        ; else
-            #f
-        )
-)
-
-(define (get-rank chess)
-        (if chess
-            (send chess get-rank)
-        ; else
-            #f
-        )
-)
-
-
-(define (get-belong-to chess)
-        (if chess
-            (send chess get-belong-to)
-        ; else
-            #f
-        )
-)
-
-(define (get-state chess)
-        (if chess
-            (send chess get-state)
-        ; else
-            #f
-        )
-)
-
-(define (get-full-values chess)
-        (if chess
-            (send chess get-full-values)
-        ; else
-            #f
-        )
-)
-
-(define (get-position chess)
-        (if chess
-            (send chess get-position)
-        ; else
-            #f
-        )
-)
-
-(define (in-camp? pos_or_chess)
-        (if pos_or_chess
-            (send pos_or_chess in-camp?)
-        ; else
-            #f
-        )
-)
-
-(define (in-base? pos_or_chess)
-        (if pos_or_chess
-            (send pos_or_chess in-base?)
-        ; else
-            #f
-        )
-)
-
-(define (move-able? chess)
-        (if chess
-            (send chess move-able?)
-        ; else
-            #f
-        )
-)
-
-(define (is-flag? chess)
-
-       (if chess
-           (send chess is-flag?)
-       ; else
-           #f
-       )
-)
-
-(define (is-labor? chess)
-
-      (if chess
-          (send chess is-labor?)
-      ; else
-         #f
-      )
-)
-
-(define (is-mine? chess)
-
-     (if chess
-         (send chess is-mine?)
-     ; else
-         #f
-     )
-)
-
-(define (is-bomb? chess)
-
-     (if chess
-         (send chess is-bomb?)
-     ; else
-         #f
-     )
-
-)
-
-(define (exist? chess)
-        (if chess #t #f)
-)
-
-(define (not-exist? chess)
-        (if chess #f #t)
-)
-
-(define (find-picked-up board)
-        (send board find-picked-up)
-)
-
-(define (find-whole-chess board position)
-        (send board find-whole-chess position)
-)
-
-(define (find-belong-to board belong-to)
-        (send board find-belong-to belong-to)
-)
-
-(define (find-all-enemies board belong-to)
-        (send board find-all-enemies belong-to)
-)         
-
-(define (find-country board country)
-        (send board find-country country)
-)
-
-(define (find-rank board rank)
-        (send board find-rank rank)
-)
-
-(define (is-empty? board belong-to)
-        (send board is-empty? belong-to)
-)
-
-(define (get-occupied-list board)
-        (send board get-occupied-list)
-)
-
-(define (set-occupied-list board x)
-        (send board set-occupied-list x)
-)
-
-(define (delete-occupied board position)
-        (send board delete-occupied position)
-)
-
-(define (fight-able chess1 chess2)
-
-  (and (enemy? (send chess1 get-belong-to)
-               (send chess2 get-belong-to))
-       (not (send chess2 in-camp?))
-  )
-
-)
-
-(define (fight-result chess1 chess2)
-
-  (beat-it? (send chess1 get-rank) (send chess2 get-rank))
-
-)
-
-(define (filter-with judge-list chesses)
-
-          (filter
-
-              (lambda (chess)
-              (begin
-                   (define-values [country row col rank belong-to state] (send chess get-full-values))
-                   (andmap (lambda (x1 x2) (or (eq? x1 x2) (not x1))) ; x1 can be #f which is all-match
-                           judge-list (list country row col rank belong-to state))
-              ))
-                  
-           chesses)
-)
-
-
-
-     
-
 

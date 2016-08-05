@@ -5,13 +5,10 @@
 (provide if add get-from
          up left down right middle lsize rsize frame-size
          blue-pen red-pen white-pen blue-dashed-pen 
-
-         my-font get-top-left-corner get-size-xy
+         my-font get-top-left-corner get-size-xy valid?
          left-country right-country row-num col-num 
-
-         valid? is-camp? is-base? on-rail?
-         coordinatex not-middle? 
-         beat-it? ally? enemy?
+         coordinatex is-camp? is-base? not-middle? on-rail?
+         movable? is-labor? is-flag? beat-it? ally? enemy?
          draw-chess whole-rank-set rank-code
 
 )
@@ -170,34 +167,24 @@
   (or (eq? country1 (left-country country2))
       (eq? country1 (right-country country2)))
   (not (eq? country1 middle)) (not (eq? country2 middle))))     
+       
+(define (is-camp? country row col) ; is camp or not
+  (and (not (eq? country middle))
+          (or (= row col) (= (+ row col) 4)) (>= row 1) (<= row 3)
+ ))
 
-
-; ===================================================================
-
-(define (valid? country row col)
-      (and (>= row 0) (< row (row-num country))
-           (>= col 0) (< col (col-num country))
-      )
+(define (is-base? country row col) ; is base or not
+  (and (not (eq? country middle)) (= row 5) (or (= col 1) (= col 3)))
 )
 
-(define (is-camp? country row col)
-      (and (not (eq? country middle))
-           (or (= row col) (= (+ row col) 4)) (>= row 1) (<= row 3)
-      )
-)
+(define (on-rail? country row col) ; is on railway or not
+  (or (eq? country middle) (= row 0) (= row 4) 
+       (and (= col 0) (< row 5)) (and (= col 4) (< row 5))))
 
-(define (is-base? country row col)
-       (and (not (eq? country middle))
-            (= row 5) (or (= col 1) (= col 3))
-       )
-)
-
-(define (on-rail? country row col)
-      (or (eq? country middle) (= row 0) (= row 4) 
-          (and (= col 0) (< row 5)) (and (= col 4) (< row 5))
-      )
-)
-
+(define (valid? country row col) ; if a position is valid
+     (and (>= row 0) (< row (row-num country))
+            (>= col 0) (< col (col-num country))))
+         
 ; ===================================================================
 
 (define (rank-code num)
@@ -212,6 +199,18 @@
   (if (= (* num1 num2) 0) 0 ; if either is bomb then equal
      (if (and (= num1 30) (= num2 100)) 1 ; laborer > landmine
          (sgn (- num1 num2)))))
+
+(define (is-labor? rank)
+  (= rank 30)
+)
+
+(define (is-flag? rank)
+  (= rank 10)
+)  
+
+(define (movable? rank)
+  (not (or (= rank 10) (= rank 100)))
+)
 
 ; ===================================================================
 ; draw a chess somewhere with regards to its text and color

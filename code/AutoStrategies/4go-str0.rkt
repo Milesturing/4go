@@ -14,30 +14,42 @@
   (define result #f)
   (define quit #f)
 
-  (when (and (exist? chess) (not (in-camp? chess)))
+  (get-from (country row col rank belong-to) chess)
+  
+  (when (and chess (not (is-camp? country row col)))
 
-    (define enemy-chesses (find-all-enemies board (get-belong-to chess)))
-                           
+    (define enemy-chesses
+
+       (append (send board find-belong-to (right-country belong-to))
+               (send board find-belong-to (left-country belong-to)))
+
+    )
+
+    (define (board-occupied? x y z) (send board occupied? x y z))
+
     (for* [(e-chess enemy-chesses)]
        #:break quit
 
-      (when (and (move-able? e-chess) (or (= (fight-result e-chess chess) 1) (is-bomb? e-chess)))
+      (get-from (e-country e-row e-col e-rank) e-chess)
 
-         (define move-list (route-list board e-chess (get-position chess)))      
+      (when (and (movable? e-rank) (or (= (beat-it? e-rank rank) 1) (= e-rank 0)))
 
-         (when (> (length move-list) 1)
+         (define move-list (route-list board-occupied? e-country e-row e-col e-rank country row col))      
+
+         (define accessible (> (length move-list) 1))
+
+         (when accessible
 
               (set! result #t)
               (set! quit #t)
-           
          )
-      )
+        )
       
-   )
+      )
 
-  )
+   )
   
-  result
+   result
 
 )
 
@@ -61,39 +73,40 @@
 
 (define (calculate-value board belong-to)
 
-  (define all-chess (find-belong-to board belong-to))
+  (define all-chess (send board find-belong-to belong-to))
   (define sum 0)
 
-  (unless (null? all-chess)
+
+  (when (not (send board is-empty? belong-to)) 
  
 
-  (for ([chess all-chess])
+  (for* ([chess all-chess])
 
-    (set! sum (+ sum (score (get-rank chess) )))
+    (get-from (country row col rank) chess)
 
-    (if (in-camp? chess) (set! sum (add1 sum)))
+    (set! sum (+ sum (score rank)))
+   
+    ;
+
+    (if (is-camp? country row col) (set! sum (add1 sum)))
      
    ) ; for
 
-   (define flag-list (filter-with (list #f #f #f 10 #f #f) all-chess)) ; rank = 10
+   (define flag-list (filter (send board same-rank? 10) all-chess))
 
-   (unless (null? flag-list)
+   (when (not (null? flag-list))
 
    (define flag (car flag-list))
 
-   (define flag-col (get-col flag))
+   (get-from (_ _2 flag-col) flag)
 
    (define (extra-score e-row e-col e-score)
 
-     (define e-pos (set-position (list belong-to e-row e-col)))
+     (when (send board occupied? belong-to e-row e-col)
 
-     (define e-chess (find-whole-chess board e-pos))  
-                                
-     (when (exist? e-chess)
+       (get-from (_ _2 _3 _4 which-side) (send board find-whole-chess belong-to e-row e-col))
 
-       (define which-side (get-belong-to e-chess))
-
-       (when (enemy? which-side belong-to)
+       (if (enemy? which-side belong-to)
 
            (set! sum (- sum e-score))
            
@@ -122,69 +135,71 @@
 
 (define (strategy0 board belong-to)
 
-    (define whole-list (find-belong-to board belong-to))
+    (define whole-list (send board find-belong-to belong-to))
     (define one-move null)
     (define value 0)
     (define max-value -10000)
     (define save-occupied null)
     (define ratio (/ (/ (+ (score 39) (score 38)) 2) (score 40)) )
-  
-    (for* ([s-chess whole-list])
-      
-      (when (move-able? s-chess)
 
-      (define s-pos (get-position s-chess))
-        
+    (define (board-occupied? x y z) (send board occupied? x y z))
+  
+    (for* ([some-chess whole-list])
+
+      (get-from (s-country s-row s-col s-rank s-belong-to) some-chess)
+      
+      (if (and (movable? s-rank) (not (is-base? s-country s-row s-col)))
+  
       (for* ([d-country (list middle up left down right)]
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-        (define d-pos (set-position (list d-country d-row d-col)))
-        (define d-chess (find-whole-chess board d-pos))
+         (get-from (_ _2 _3 d-rank d-belong-to) (send board find-whole-chess d-country d-row d-col))
 
-        (define move-list (route-list board s-chess d-pos))
-        (define accessible (> (length move-list) 1))
+         (define accessible #f)
 
-        (when accessible ; second filter availability
+         (if (and (is-labor? s-rank) (not (board-occupied? d-country d-row d-col))
+                   (not (and (not (send board is-empty? d-belong-to)) (>= d-row 4)))
+             )
 
-           (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
-                                   (not (in-base? d-pos))
-                               )
-                              (or (not (exist? d-chess))
-                                  (and (exist? d-chess) (fight-able s-chess d-chess))
-                              )
-                          )) ; conditions
+             (set! accessible #f)
 
-           (when goable ; first filter those positions that are available only
+             (begin
+               (define move-list (route-list board-occupied? s-country s-row s-col s-rank d-country d-row d-col))
+               (set! accessible (> (length move-list) 1))
+              )
+         )
+        
 
-           
-             (set! save-occupied (get-occupied-list board)) ; save it
+         (define goable   (or (not (board-occupied? d-country d-row d-col))
+                          (and (board-occupied? d-country d-row d-col)
+                               (enemy? s-belong-to d-belong-to)
+                               (not (is-camp? d-country d-row d-col))
+                               (not (and (is-base? d-country d-row d-col)
+                                         (not (eq? d-rank 10))))
+                              )))
 
-             (delete-occupied board s-pos)
+         (when (and accessible goable)
 
-             (define case 0)
+             (set! save-occupied (send board get-occupied-list))
 
-             (if (not-exist? d-chess)
+             (send board delete-occupied s-country s-row s-col)
 
-                  (begin
-                    
-                        (send board occupy s-chess d-pos 'normal)
-                        (set! case 1)
+             (if (not (board-occupied? d-country d-row d-col))
 
-                  )
+                  (send board occupy d-country d-row d-col s-rank s-belong-to 'normal)
                  
                   ; else
 
-                 (match (fight-result s-chess d-chess)
+                 (match (beat-it? s-rank d-rank)
                         ([== 1] (begin
-                                  (send board delete-occupied d-pos)
-                                  (send board occupy s-chess d-pos 'normal)
-                                  (set! case 1)
+                                  (send board delete-occupied d-country d-row d-col)
+                                  (send board occupy d-country d-row d-col s-rank s-belong-to 'normal)
                                  ))
-                        ([== 0] (send board delete-occupied d-pos))
+                        ([== 0] (send board delete-occupied d-country d-row d-col))
                         ([== -1] null)
                    )
-              )
+                 )
 
               (set! value (- (+ (calculate-value board belong-to)
                                 (calculate-value board (right-country (right-country belong-to))))
@@ -193,9 +208,9 @@
 
            
 
-              (when (and (= case 1) (under-attack board (find-whole-chess board d-pos)))
+              (when (and (not (is-labor? s-rank)) (under-attack board (send board find-whole-chess d-country d-row d-col)))
 
-                  (set! value (- value (* ratio (score (get-rank s-chess)))))
+                  (set! value (- value (* ratio (score s-rank))))
 
               )
 
@@ -205,12 +220,11 @@
               (when (>= value max-value)
 
                     (set! max-value value)
-                    (set! one-move (list s-pos d-pos))
+                    (set! one-move (list s-country s-row s-col d-country d-row d-col))
               )
                   
-              (set-occupied-list board save-occupied)
+              (send board set-occupied-list save-occupied)
             )
-           )
         )
 
     ))

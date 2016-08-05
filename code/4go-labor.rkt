@@ -10,7 +10,6 @@
 (define (neighbours-on-rail country row col) ; successful, do not touch it
 
     (define they null)
-  
     (define neighbours 
          (list (list country (add1 row) col)
                (list country (sub1 row) col)
@@ -61,6 +60,7 @@
     (define final-pos null)
     (define quit #f)
     
+
     (define passed-positions ; key variable to become faster!
       (remove-duplicates (apply append fly-route-list))
     )      

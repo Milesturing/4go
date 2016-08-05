@@ -8,7 +8,7 @@
 
 (require "AutoStrategies/4go-str0.rkt"
          "AutoStrategies/4go-str1.rkt"
-                                      ) ; load strategies
+        ) ; load strategies
 
 ; ===================================================================
 ; global variables
@@ -66,132 +66,141 @@
 
 ; ====================================================
 
-(define (draw-route move-list chess delay-time)
+(define (draw-route move-list rank belong-to time)
 
-    (define index 0)
-    (define len (length move-list))
-
-    (for ([route-step move-list])
-
-           (set! index (add1 index))
-           (send board delete-occupied route-step)
-
-           (when (< index len)
-               
-                 (send board occupy chess route-step 'picked-up)
-
-
-                 (re-draw)
-
-             
-                 (sleep (/ delay-time (length move-list)))
-
-                 (send board delete-occupied route-step)
-             
-           )
-
-      )
-)
-
-; ====================================================
-
-(define (move-from-to move-list delay-time o-chess c-pos)
-
-   (define c-chess (send board find-whole-chess c-pos))
-  
-                    
-   (if (not-exist? c-chess) ; empty
-
-      (begin
-        
-        (draw-route move-list o-chess delay-time)
-        
-        (send board occupy o-chess c-pos 'normal)
-
-        (go-to-next-country)
-      )
+    (for* ([route move-list])
       
-   ; else 
-
-     (when (fight-able o-chess c-chess) ; fight with it!
-
-        (draw-route move-list o-chess delay-time)
-     
-        (define beat? (fight-result o-chess c-chess))
-        (when (or (= beat? 1) (= beat? 0))
-              (send board delete-occupied c-pos)
-              (if (is-flag? c-chess) (send board delete-nation c-chess))
-         )     
-
-        (when (= beat? -1)
-            (send board occupy c-chess c-pos 'normal)
-        )    
-            
-        (when (= beat? 1)
-            (send board occupy o-chess c-pos 'normal)
-        )
-
-        (go-to-next-country)
-
+           (get-from (r-country r-row r-col) route)      
+           (send board delete-occupied r-country r-row r-col)
+           (send board occupy r-country r-row r-col rank belong-to 'picked-up)      
+           (re-draw)
+           (sleep (/ time (length move-list))) 
+           (send board delete-occupied r-country r-row r-col)
      )
-     
-   )
-
+  
 )
 
 ; ====================================================
 
-(define (move-to o-pos c-pos)
+(define (move-to o-country o-row o-col country row col)
 
-   (define o-chess (send board find-whole-chess o-pos))
+   (define (board-occupied? x y z) (send board occupied? x y z)) 
 
-   (define move-list (route-list board o-chess c-pos))      
+   (get-from (_c _r _l o-rank o-belong-to o-state) (send board find-whole-chess o-country o-row o-col))
+  
+   (get-from (_cc _rr _ll rank belong-to state) (send board find-whole-chess country row col))
+
+   (define move-list (route-list board-occupied? o-country o-row o-col o-rank country row col))      
    (define accessible (> (length move-list) 1))
 
-   (when accessible
+   (when (and accessible (not (board-occupied? country row col)))
 
-      (move-from-to move-list 0.7 o-chess c-pos)
+      (draw-route move-list o-rank o-belong-to 0.7)
 
-    )
+      (send board occupy country row col o-rank o-belong-to 'normal)
+
+   )
+
+   (when (and accessible state (board-occupied? country row col) (enemy? o-belong-to belong-to) (not (is-camp? country row col)) ) ; fight with it!
+
+        (define beat? (beat-it? o-rank rank))
+        (draw-route move-list o-rank o-belong-to 0.7)
+
+        (when (> beat? -1)
+              (send board delete-occupied country row col)
+              (if (is-flag? rank) (send board delete-country belong-to))
+         )     
+
+        (if (= beat? -1)
+            (send board occupy country row col rank belong-to 'normal)
+        )    
+            
+        (if (= beat? 1)
+          (send board occupy country row col o-rank o-belong-to 'normal)
+        )  
+
+   )
 )
+
+; ====================================================
+
+(define (computer-run belong-to strategy)
+
+  (define the-move
+
+    (eval (list strategy board belong-to))
+     
+  )
+
+  (unless (null? the-move) (apply move-to the-move))  
+)  
 
 ; ====================================================
 
 (define (click-chess country-row-col)
 
-  (when country-row-col
+  
+  (when country-row-col   
     
-    (define c-pos (set-position country-row-col)) ; c = clicked
-    (define c-chess (send board find-whole-chess c-pos)) ; clicked chess
-    (define o-chess (send board find-picked-up)) ; o = original
+    (get-from (country row col) country-row-col)
+    (get-from (_c _r _l rank belong-to state) (send board find-whole-chess country row col))
+    (get-from (o-country o-row o-col o-rank o-belong-to o-state) (send board find-picked-up)) ; original info
+        
+    (when (and (not o-state) (eq? belong-to which-turn) (movable? rank) (not (is-base? country row col)))
 
-    (when (and
-               (exist? c-chess)
-               (not-exist? o-chess)
-               (move-able? c-chess)
-               (eq? (get-belong-to c-chess) which-turn)
-          )
+        (send board delete-occupied country row col)
+        (send board occupy country row col rank belong-to 'picked-up)
 
-         (send board change-state c-pos 'picked-up) ; change the status
-
-    )  
+    )
     
-    (when (exist? o-chess) ; ready to move
-          
-        (define move-list (route-list board o-chess c-pos))      
-        (define accessible (> (length move-list) 1))
+    (when o-state
 
-        (define o-pos (send o-chess get-position))
+      (define (board-occupied? x y z) (send board occupied? x y z))
       
-        (if accessible
+      (define move-list (route-list board-occupied? o-country o-row o-col o-rank country row col))      
+      (define accessible (> (length move-list) 1))
+      
+      (when (not accessible) 
 
-               (move-from-to move-list 0.1 o-chess c-pos)
+         (send board delete-occupied o-country o-row o-col)
+         (send board occupy o-country o-row o-col o-rank o-belong-to 'normal)
 
-         ; else
-               
-              (send board change-state o-pos 'normal)  ; put down the chess
-        ) 
+      )
 
+      (when (and accessible (not state)) ; empty position
+
+          (draw-route move-list o-rank o-belong-to 0.1)
+
+          (send board occupy country row col o-rank o-belong-to 'normal)
+        
+          (go-to-next-country)
+
+      )
+
+      (when (and accessible state (enemy? o-belong-to belong-to)
+                 (not (is-camp? country row col)) ) ; fight with it!
+
+        (define beat? (beat-it? o-rank rank))
+
+        (draw-route move-list o-rank o-belong-to 0.1)
+
+        (when (> beat? -1)
+              (send board delete-occupied country row col)
+              (if (is-flag? rank) (send board delete-country belong-to))
+         )
+
+        (if (= beat? -1)
+            (send board occupy country row col rank belong-to 'normal)
+        )    
+
+        (when (= beat? 1)
+          (send board occupy country row col o-rank o-belong-to 'normal)
+        )
+      
+        (go-to-next-country)
+
+      )
+      
     )
     
     (re-draw)
@@ -199,9 +208,8 @@
   )
 )
 
-
 ; ====================================================================
-; initialization
+; assignments
 
 (define (forbidden rank country row col)
   
@@ -215,14 +223,10 @@
   (if (and (= rank 0) (= row 0))
       (set! forb #t))
   (if (and (= rank 100) (= row 4) (even? col)
-           (member
-             (get-rank (find-whole-chess board (set-position (list country 5 col))))
-            (list 40 39 38 0)))
+           (member (send board find-its-rank country 5 col) (list 40 39 38 0)))
       (set! forb #t))
   (if (and (= row 5) (even? col) (member rank (list 40 39 38 0))
-           (eq?
-             (get-rank (find-whole-chess board (set-position (list country 4 col))))
-            100))
+           (eq? (send board find-its-rank country 4 col) 100))
       (set! forb #t))
                  
   forb
@@ -237,7 +241,7 @@
   (set! row (list-ref (range (row-num belong-to)) (random (row-num belong-to))))
   (set! col (list-ref (range (col-num belong-to)) (random (col-num belong-to))))
                                
-  (if (or ((occupied? board) country row col) (is-camp? country row col) (forbidden rank country row col))
+  (if (or (send board occupied? country row col) (is-camp? country row col) (forbidden rank country row col))
           (assign-country-row-col belong-to rank) (list country row col))
 )
 
@@ -253,43 +257,37 @@
       
          (get-from (country row col) (assign-country-row-col belong-to rank))
     
-         (send board throw country row col rank belong-to)
+         (send board occupy country row col rank belong-to 'normal)
    )  
 
   (begin ; for debug only
-  (send board throw down 4 1 30 down)
-  (send board throw right 4 1 30 right)
-
+  (send board occupy down 4 1 30 down 'normal)
+  (send board occupy right 4 1 30 right 'normal)
+  (send board occupy up 4 1 38 up 'normal)
+  (send board occupy left 4 1 30 left 'normal)
+  
   
   )
 
   )
 )
 
+
 ; ====================================================
 
 (define (go-to-next-country)
 
-   (set! which-turn (right-country which-turn))
+  (set! which-turn (right-country which-turn))
 
    (if (send board is-empty? which-turn)
        (go-to-next-country)
        ; else
-       (unless (eq? (player which-turn) 'human) ; computer run
-
-           (re-draw) ; cannot be removed here
-         
-           (define strategy (player which-turn)) ; the strategy code that computer adopts
-           (define belong-to which-turn)
-
-           (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
-         
-           (if (not (= (length the-move) 2))
-               (error "Wrong output from strategy")
-           ; else
-               (apply move-to the-move)
-           )
-         
+       (unless (eq? (player which-turn) 'human)
+           (re-draw)
+;           (sleep 0.7)
+           (computer-run which-turn (player which-turn)) ; the second argument being the
+                                                         ; strategy number that computer adopts
+           (go-to-next-country)
        )          
    )    
 )  
