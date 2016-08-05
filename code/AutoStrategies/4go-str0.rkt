@@ -139,10 +139,15 @@
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-         (define d-pos (set-position (list d-country d-row d-col)))
-         (define d-chess (find-whole-chess board d-pos))
-  
-         (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
+        (define d-pos (set-position (list d-country d-row d-col)))
+        (define d-chess (find-whole-chess board d-pos))
+
+        (define move-list (route-list board s-chess d-pos))
+        (define accessible (> (length move-list) 1))
+
+        (when accessible ; second filter availability
+
+           (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
                                    (not (in-base? d-pos))
                                )
                               (or (not (exist? d-chess))
@@ -150,13 +155,9 @@
                               )
                           )) ; conditions
 
-         (when goable ; first filter those positions that are available only
+           (when goable ; first filter those positions that are available only
 
-           (define move-list (route-list board s-chess d-pos))
-           (define accessible (> (length move-list) 1))
-
-           (when accessible ; second filter availability
-
+           
              (set! save-occupied (get-occupied-list board)) ; save it
 
              (delete-occupied board s-pos)

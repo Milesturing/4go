@@ -9,28 +9,24 @@
 
 ; ====================================================
 
-(define (under-attack board chess)
+(define (under-attack board chess enemy-chesses)
 
-  (define result 0)
+    (define result 0)
   
-  (when (and (exist? chess) (not (in-camp? chess)))
-
-    (define enemy-chesses (find-all-enemies board (get-belong-to chess)))
-
     (define quit #f)
-    
+
     (for* [(e-chess enemy-chesses)]
        #:break quit
 
       (when (move-able? e-chess)
-
-         (define beat? (fight-result e-chess chess))
-        
+  
+        (define beat? (fight-result e-chess chess))
+ 
          (when (= beat? 1)
 
-           (define move-list (route-list board e-chess (get-position chess)))      
-           (define accessible (> (length move-list) 1))
-
+           (define accessible (access? board e-chess (get-position chess)))      
+           
+           
            (when accessible
               (set! result (- (score (get-rank chess))))
               (set! quit #t) ; quit for loop
@@ -39,9 +35,8 @@
 
          (when (= beat? 0)
 
-           (define move-list (route-list board e-chess (get-position chess)))      
-           (define accessible (> (length move-list) 1))
-
+           (define accessible (access? board e-chess (get-position chess)))      
+           
            (when accessible
               (set! result (- (score (get-rank e-chess)) (score (get-rank chess))))
               (if (> result 0) (set! result 0))
@@ -50,8 +45,9 @@
          )
        )
      )
-   )
 
+
+  
    result
 
 )
@@ -120,9 +116,11 @@
 
 (define ratio 0.35) ; a constant
 
+
 (define (calculate-value board belong-to)
 
   (define all-chess (find-belong-to board belong-to)) ; all chesses belonging to this side
+  (define enemies (find-all-enemies board belong-to))
   (define sum 0)
 
   (when (not (null? all-chess)) ; if the side is not empty
@@ -132,7 +130,11 @@
 
     (set! sum (+ sum (score (get-rank chess))))
 
-    (set! sum (+ sum (* ratio (under-attack board chess))))
+    (when (and (exist? chess) (not (in-camp? chess)))
+
+      (set! sum (+ sum (* ratio (under-attack board chess enemies))))
+     
+    )
 
      
    ) ; for
@@ -207,10 +209,15 @@
              [d-row (range (row-num d-country))]
              [d-col (range (col-num d-country))])
 
-         (define d-pos (set-position (list d-country d-row d-col)))
-         (define d-chess (find-whole-chess board d-pos))
+        (define d-pos (set-position (list d-country d-row d-col)))
+        (define d-chess (find-whole-chess board d-pos))
         
-         (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
+        (define move-list (route-list board s-chess d-pos))
+        (define accessible (> (length move-list) 1))
+
+        (when accessible ; filter availability
+
+          (define goable   (and (or (and (is-flag? d-chess) (exist? d-chess))
                                    (not (in-base? d-pos))
                                )
                               (or (not (exist? d-chess))
@@ -218,12 +225,7 @@
                               )
                           )) ; conditions
 
-         (when goable ; first filter those positions that are available only
-
-           (define move-list (route-list board s-chess d-pos))
-           (define accessible (> (length move-list) 1))
-
-           (when accessible ; second filter availability
+          (when goable ; filter those positions that are available only
 
              (set! save-occupied (get-occupied-list board))
 
@@ -251,7 +253,8 @@
                                 (calculate-value board (right-country (right-country belong-to))))
                              (+ (calculate-value board (right-country belong-to))
                                 (calculate-value board (left-country belong-to)))))
-           
+
+
 
               (set! value (+ value (random 5)))
    
@@ -268,7 +271,7 @@
 
     ))
 
-
+  
     one-move
 
   

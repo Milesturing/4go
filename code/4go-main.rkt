@@ -280,7 +280,8 @@
            (re-draw) ; cannot be removed here
          
            (define strategy (player which-turn)) ; the strategy code that computer adopts
-           (define belong-to which-turn)             
+           (define belong-to which-turn)
+
            (define the-move (eval (list strategy board belong-to)) ) ; read from auto-strategy file
          
            (if (not (= (length the-move) 2))
