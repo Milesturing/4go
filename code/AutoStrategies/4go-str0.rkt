@@ -156,19 +156,9 @@
 
          (get-from (_ _2 _3 d-rank d-belong-to) (send board find-whole-chess d-country d-row d-col))
 
-         (define accessible #f)
 
-         (if (and (is-labor? s-rank) (not (board-occupied? d-country d-row d-col))
-                   (not (and (not (send board is-empty? d-belong-to)) (>= d-row 4)))
-             )
-
-             (set! accessible #f)
-
-             (begin
-               (define move-list (route-list board-occupied? s-country s-row s-col s-rank d-country d-row d-col))
-               (set! accessible (> (length move-list) 1))
-              )
-         )
+         (define move-list (route-list board-occupied? s-country s-row s-col s-rank d-country d-row d-col))
+         (define accessible (> (length move-list) 1))
         
 
          (define goable   (or (not (board-occupied? d-country d-row d-col))
@@ -208,7 +198,7 @@
 
            
 
-              (when (and (not (is-labor? s-rank)) (under-attack board (send board find-whole-chess d-country d-row d-col)))
+              (when (under-attack board (send board find-whole-chess d-country d-row d-col))
 
                   (set! value (- value (* ratio (score s-rank))))
 

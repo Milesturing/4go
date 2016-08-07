@@ -37,7 +37,7 @@
 
          (define beat? (beat-it? e-rank rank))
         
-         (when (and (= beat? 1) (not (= rank 100)))
+         (when (= beat? 1)
 
            (define move-list (route-list board-occupied? e-country e-row e-col e-rank country row col))      
            (define accessible (> (length move-list) 1))
@@ -186,9 +186,9 @@
        
         (when m-belong-to
 
-          (define sign (if (enemy? m-belong-to belong-to) -1 1/2))
+          (define sign (if (enemy? m-belong-to belong-to) -1 2/5))
 
-          (set! sum (+ sum (* sign 1/12 (position-score m-rank) (position-value m-row m-col flag-col))))
+          (set! sum (+ sum (* sign 1/10 (position-score m-rank) (position-value m-row m-col flag-col))))
 
         )
       
